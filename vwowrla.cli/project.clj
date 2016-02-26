@@ -4,4 +4,11 @@
   :license     {:name "MIT License"
                 :url  "http://opensource.org/licenses/MIT"}
 
-  :dependencies [[org.clojure/clojure "1.8.0"]])
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/tools.logging "0.3.1"]
+                 [log4j "1.2.16"]
+                 [org.clojure/tools.cli "0.3.3"]
+
+                 [vwowrla.core "0.1.0-SNAPSHOT"]]
+
+  :profiles {:repl {:source-paths ["repl"]}})

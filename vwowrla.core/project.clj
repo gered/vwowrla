@@ -4,4 +4,6 @@
   :license     {:name "MIT License"
                 :url  "http://opensource.org/licenses/MIT"}
 
-  :dependencies [[org.clojure/clojure "1.8.0"]])
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/tools.logging "0.3.1"]
+                 [log4j "1.2.16"]])
