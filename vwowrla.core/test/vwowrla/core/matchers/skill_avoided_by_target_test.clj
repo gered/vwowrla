@@ -657,3 +657,42 @@
           :source-name      "Onyxia's Elite Guard"
           :skill            "Test Curse"
           :avoidance-method :immune})))
+
+(deftest skill-immune-2-self
+  (is (valid-matcher? (get-matcher regex-matchers :skill-immune-2-self)))
+
+  (is (= (parse-line "1/15 22:22:00.503  Babyorc is immune to your Polymorph: Pig." options)
+         {:id               :skill-immune-2-self
+          :logfmt           :skill-immune-2
+          :event            :skill-avoided-by-target
+          :line             "1/15 22:22:00.503  Babyorc is immune to your Polymorph: Pig."
+          :timestamp        (parse-log-timestamp "1/15 22:22:00.503" options)
+          :target-name      "Babyorc"
+          :source-name      owner-char-name
+          :skill            "Polymorph: Pig"
+          :avoidance-method :immune})))
+
+(deftest skill-immune-2
+  (is (valid-matcher? (get-matcher regex-matchers :skill-immune-2)))
+
+  (is (= (parse-line "1/18 22:17:10.168  Nefarian is immune to Impale's Immolation." options)
+         {:id               :skill-immune-2
+          :logfmt           :skill-immune-2
+          :event            :skill-avoided-by-target
+          :line             "1/18 22:17:10.168  Nefarian is immune to Impale's Immolation."
+          :timestamp        (parse-log-timestamp "1/18 22:17:10.168" options)
+          :target-name      "Nefarian"
+          :source-name      "Impale"
+          :skill            "Immolation"
+          :avoidance-method :immune}))
+
+  (is (= (parse-line "1/18 22:15:45.379  Spookee is immune to Aesthetera's Polymorph: Pig." options)
+         {:id               :skill-immune-2
+          :logfmt           :skill-immune-2
+          :event            :skill-avoided-by-target
+          :line             "1/18 22:15:45.379  Spookee is immune to Aesthetera's Polymorph: Pig."
+          :timestamp        (parse-log-timestamp "1/18 22:15:45.379" options)
+          :target-name      "Spookee"
+          :source-name      "Aesthetera"
+          :skill            "Polymorph: Pig"
+          :avoidance-method :immune})))

@@ -343,6 +343,26 @@
               :target-name      %3
               :avoidance-method :immune)}
 
+   {:regex  #"^(.+) is immune to your (.+)\.$"
+    :id     :skill-immune-2-self
+    :logfmt :skill-immune-2
+    :event  :skill-avoided-by-target
+    :args   #(hash-map
+              :target-name      %1
+              :skill            %2
+              :source-name      "you"
+              :avoidance-method :immune)}
+
+   {:regex  #"^(.+?) is immune to (.+?)'s (.+)\.$"
+    :id     :skill-immune-2
+    :logfmt :skill-immune-2
+    :event  :skill-avoided-by-target
+    :args   #(hash-map
+              :target-name      %1
+              :source-name      %2
+              :skill            %3
+              :avoidance-method :immune)}
+
    ;;; ---------------------------------------------------------------------------------------------
    ;;; REFLECTS
 
