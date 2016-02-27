@@ -1,0 +1,38 @@
+{"Lucifron"                 {:entities {"Lucifron"             {:count 1}
+                                        "Flamewaker Protector" {:count 2}}}
+
+ "Magmadar"                 {:entities {"Magmadar" {:count 1}}}
+
+ "Gehennas"                 {:entities {"Gehennas"   {:count 1}
+                                        "Flamewaker" {:count 2}}}
+
+ "Garr"                     {:entities {"Garr"      {:count 1}
+                                        "Firesworn" {:count 8}}}
+
+ "Baron Geddon"             {:entities {"Baron Geddon" {:count 1}}}
+
+ "Shazzrah"                 {:entities {"Shazzrah" {:count 1}}}
+
+ "Sulfuron Harbinger"       {:entities {"Sulfuron Harbinger" {:count 1}
+                                        "Flamewaker Priest"  {:count 4}}}
+
+ "Golemagg the Incinerator" {:entities {"Golemagg the Incinerator" {:count 1}
+                                        "Core Rager"               {:count 2}}}
+
+ "Majordomo Executus"       {:entities           {"Majordomo Executus" {:count                    1
+                                                                        :must-kill-count          0
+                                                                        :ignore-interactions-with ["Ragnaros"]
+                                                                        :ignore-skills            ["Summon Ragnaros"]}
+                                                  "Flamewaker Healer"  {:count 4}
+                                                  "Flamewaker Elite"   {:count 4}}
+                             :trigger-on-damage? true
+                             :trigger-on-debuff? true}
+
+ "Ragnaros"                 {:entities           {"Ragnaros"     {:count                    1
+                                                                  :ignore-interactions-with ["Majordomo Executus"]}
+                                                  "Son of Flame" {:count           8
+                                                                  :must-kill-count 0}}
+                             :trigger-on-damage? true
+                             :trigger-on-debuff? true}
+
+ "Onyxia"                   {:entities {"Onyxia" {:count 1}}}}

@@ -6,4 +6,5 @@
 
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.logging "0.3.1"]
-                 [log4j "1.2.16"]])
+                 [log4j "1.2.16"]
+                 [cheshire "5.5.0"]])
