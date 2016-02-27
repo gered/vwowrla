@@ -7,4 +7,7 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.logging "0.3.1"]
                  [log4j "1.2.16"]
-                 [cheshire "5.5.0"]])
+                 [prismatic/schema "1.0.5"]
+                 [cheshire "5.5.0"]]
+
+  :profiles {:repl {:source-paths ["repl"]}})
