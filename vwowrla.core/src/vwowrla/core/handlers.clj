@@ -134,7 +134,7 @@
   data)
 
 (defmethod handle-event :aura-gained
-  [{:keys [target-name aura-name type stacks timestamp] :as parsed} data]
+  [{:keys [target-name aura-name aura-type stacks timestamp] :as parsed} data]
   data)
 
 (defmethod handle-event :aura-lost

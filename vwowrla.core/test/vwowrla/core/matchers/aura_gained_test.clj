@@ -29,7 +29,7 @@
           :timestamp   (parse-log-timestamp "5/25 21:21:16.385" options)
           :target-name "Vasling"
           :aura-name   "Blink"
-          :type        :buff
+          :aura-type   :buff
           :stacks      nil}))
 
   (is (= (parse-line "5/25 21:16:27.257  Eggs gains Renew." options)
@@ -40,7 +40,7 @@
           :timestamp   (parse-log-timestamp "5/25 21:16:27.257" options)
           :target-name "Eggs"
           :aura-name   "Renew"
-          :type        :buff
+          :aura-type   :buff
           :stacks      nil}))
 
   (is (= (parse-line "5/25 23:26:03.093  Victore gains Bonereaver's Edge (2)." options)
@@ -51,7 +51,7 @@
           :timestamp   (parse-log-timestamp "5/25 23:26:03.093" options)
           :target-name "Victore"
           :aura-name   "Bonereaver's Edge"
-          :type        :buff
+          :aura-type   :buff
           :stacks      2}))
 
   (is (= (parse-line "5/25 21:42:59.537  You gain Regrowth." options)
@@ -62,7 +62,7 @@
           :timestamp   (parse-log-timestamp "5/25 21:42:59.537" options)
           :target-name owner-char-name
           :aura-name   "Regrowth"
-          :type        :buff
+          :aura-type   :buff
           :stacks      nil})))
 
 (deftest aura-debuff-gained
@@ -76,7 +76,7 @@
           :timestamp   (parse-log-timestamp "5/25 21:16:46.564" options)
           :target-name "Vasling"
           :aura-name   "Gnomish Death Ray"
-          :type        :debuff
+          :aura-type   :debuff
           :stacks      nil}))
 
   (is (= (parse-line "5/25 21:16:43.064  Onyxia is afflicted by Shadow Vulnerability (5)." options)
@@ -87,7 +87,7 @@
           :timestamp   (parse-log-timestamp "5/25 21:16:43.064" options)
           :target-name "Onyxia"
           :aura-name   "Shadow Vulnerability"
-          :type        :debuff
+          :aura-type   :debuff
           :stacks      5}))
 
   (is (= (parse-line "5/25 21:43:05.511  You are afflicted by Weakened Soul." options)
@@ -98,5 +98,5 @@
           :timestamp   (parse-log-timestamp "5/25 21:43:05.511" options)
           :target-name owner-char-name
           :aura-name   "Weakened Soul"
-          :type        :debuff
+          :aura-type   :debuff
           :stacks      nil})))

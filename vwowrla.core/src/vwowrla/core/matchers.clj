@@ -698,7 +698,7 @@
               :target-name %1
               :aura-name   %2
               :stacks      (->int %3)
-              :type        :buff)}
+              :aura-type   :buff)}
 
    {:regex  #"^(.+) (?:is|are) afflicted by (.+?)(?: \((\d+)\))?\.$"
     :id     :aura-debuff-gained
@@ -708,7 +708,7 @@
               :target-name %1
               :aura-name   %2
               :stacks      (->int %3)
-              :type        :debuff)}
+              :aura-type   :debuff)}
 
    {:regex  #"^(.+) fades from (.+)\.$"
     :id     :aura-fades
