@@ -1,10 +1,12 @@
 (ns vwowrla.core.parser
-  (:import (java.util TimeZone))
+  (:import
+    (java.util TimeZone))
   (:require
     [clojure.tools.logging :refer [info error warn]]
     [clojure.java.io :as io]
     [schema.core :as s]
-    [vwowrla.core.encounters :as encounters]
+    [vwowrla.core.encounters.detection :refer [detect-encounter-end detect-encounter-triggered]]
+    [vwowrla.core.encounters.analysis :refer [begin-encounter end-encounter]]
     [vwowrla.core.handlers :refer [handle-event]]
     [vwowrla.core.matchers :refer [regex-matchers]])
   (:use
@@ -61,16 +63,16 @@
   [parsed-line :- CombatEvent
    data        :- RaidAnalysis]
   (let [data (handle-line parsed-line data)]
-    (if-let [encounter-end (encounters/detect-encounter-end parsed-line data)]
-      (encounters/end-encounter parsed-line encounter-end data)
+    (if-let [encounter-end (detect-encounter-end parsed-line data)]
+      (end-encounter parsed-line encounter-end data)
       data)))
 
 (s/defn ^:private out-of-encounter-processing
   [parsed-line :- CombatEvent
    data        :- RaidAnalysis]
-  (if-let [encounter-name (encounters/detect-encounter-triggered parsed-line data)]
+  (if-let [encounter-name (detect-encounter-triggered parsed-line data)]
     (->> data
-         (encounters/begin-encounter encounter-name parsed-line)
+         (begin-encounter encounter-name parsed-line)
          (handle-line parsed-line))
     data))
 

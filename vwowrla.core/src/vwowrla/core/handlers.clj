@@ -1,6 +1,6 @@
 (ns vwowrla.core.handlers
   (:require
-    [vwowrla.core.encounters :as encounters]))
+    [vwowrla.core.encounters.analysis :as analysis]))
 
 (defmulti handle-event
   (fn [{:keys [event]} _]
@@ -8,7 +8,7 @@
 
 (defmethod handle-event :skill-damage-to-target
   [{:keys [source-name skill target-name damage damage-type absorbed resisted blocked crit? timestamp] :as parsed} data]
-  (encounters/process-source-to-target-damage
+  (analysis/process-source-to-target-damage
     source-name
     target-name
     {:skill          skill
@@ -24,7 +24,7 @@
 
 (defmethod handle-event :skill-avoided-by-target
   [{:keys [source-name target-name skill avoidance-method timestamp] :as parsed} data]
-  (encounters/process-source-to-target-damage
+  (analysis/process-source-to-target-damage
     source-name
     target-name
     {:skill            skill
@@ -35,7 +35,7 @@
 
 (defmethod handle-event :damage-reflected
   [{:keys [source-name target-name damage damage-type timestamp] :as parsed} data]
-  (encounters/process-source-to-target-damage
+  (analysis/process-source-to-target-damage
     source-name
     target-name
     {:skill         "Reflect"
@@ -48,7 +48,7 @@
 
 (defmethod handle-event :melee-damage-to-target
   [{:keys [source-name target-name damage damage-type hit-type absorbed resisted blocked crit? timestamp] :as parsed} data]
-  (encounters/process-source-to-target-damage
+  (analysis/process-source-to-target-damage
     source-name
     target-name
     {:skill          "Melee"
@@ -65,7 +65,7 @@
 
 (defmethod handle-event :melee-avoided-by-target
   [{:keys [source-name target-name avoidance-method timestamp] :as parsed} data]
-  (encounters/process-source-to-target-damage
+  (analysis/process-source-to-target-damage
     source-name
     target-name
     {:skill            "Melee"
@@ -80,7 +80,7 @@
 
 (defmethod handle-event :dot-damages-target
   [{:keys [source-name skill target-name damage damage-type absorbed resisted timestamp] :as parsed} data]
-  (encounters/process-source-to-target-damage
+  (analysis/process-source-to-target-damage
     source-name
     target-name
     {:skill          skill
@@ -100,11 +100,11 @@
 
 (defmethod handle-event :skill-performed-on-target
   [{:keys [source-name target-name skill spell? extra timestamp] :as parsed} data]
-  (encounters/process-source-to-target-cast source-name target-name skill timestamp data))
+  (analysis/process-source-to-target-cast source-name target-name skill timestamp data))
 
 (defmethod handle-event :cast
   [{:keys [source-name skill spell? timestamp] :as parsed} data]
-  (encounters/process-entity-cast source-name skill timestamp data))
+  (analysis/process-entity-cast source-name skill timestamp data))
 
 (defmethod handle-event :skill-heals-target
   [{:keys [source-name skill crit? target-name amount timestamp] :as parsed} data]
@@ -117,7 +117,7 @@
 (defmethod handle-event :resource-lost
   [{:keys [target-name amount resource-type source-name skill timestamp] :as parsed} data]
   (condp = resource-type
-    :health (encounters/process-source-to-target-damage
+    :health (analysis/process-source-to-target-damage
               source-name
               target-name
               {:skill         skill
@@ -147,7 +147,7 @@
 
 (defmethod handle-event :death
   [{:keys [source-name timestamp] :as parsed} data]
-  (encounters/process-entity-death source-name timestamp data))
+  (analysis/process-entity-death source-name timestamp data))
 
 
 (defmethod handle-event :ignored
