@@ -62,7 +62,8 @@
               :damage      (->int %4)
               :blocked     (->int %5)
               :absorbed    (->int %6)
-              :source-name "you")}
+              :source-name "you"
+              :damage-type :physical)}
 
    {:regex  #"^Your (.+) (hits|crits) (.+) for (\d+)\.(?: \((\d+) blocked\))?(?: \((\d+) absorbed\))?$"
     :id     :skill-damages-target-short-self
@@ -75,7 +76,8 @@
               :damage      (->int %4)
               :blocked     (->int %5)
               :absorbed    (->int %6)
-              :source-name "you")}
+              :source-name "you"
+              :damage-type :physical)}
 
    {:regex  #"^(.+?)'s (.+) (hits|crits) (.+) for (\d+) (.+) damage\.(?: \((\d+) resisted\))?(?: \((\d+) absorbed\))?$"
     :id     :skill-damages-target-elemental
@@ -103,7 +105,8 @@
               :target-name %4
               :damage      (->int %5)
               :blocked     (->int %6)
-              :absorbed    (->int %7))}
+              :absorbed    (->int %7)
+              :damage-type :physical)}
 
    {:regex  #"^(.+?)'s (.+) (hits|crits) (.+) for (\d+)\.(?: \((\d+) blocked\))?(?: \((\d+) absorbed\))?$"
     :id     :skill-damages-target-short
@@ -116,7 +119,8 @@
               :target-name %4
               :damage      (->int %5)
               :blocked     (->int %6)
-              :absorbed    (->int %7))}
+              :absorbed    (->int %7)
+              :damage-type :physical)}
 
    ;;; ---------------------------------------------------------------------------------------------
    ;;; SKILL/SPELL MISSES / FULL-ABSORBS / FULL-RESISTS
@@ -390,9 +394,11 @@
               :damage      (->int %4)
               :hit-type    (cond
                              (= %5 "glancing") :glancing
-                             (= %6 "crushing") :crushing)
+                             (= %6 "crushing") :crushing
+                             :else             :normal)
               :blocked     (->int %7)
-              :absorbed    (->int %8))}
+              :absorbed    (->int %8)
+              :damage-type :physical)}
 
    {:regex  #"^(.+) (hit|hits|crit|crits) (.+) for (\d+) (.+) damage\.(?: \((glancing)\))?(?: \((crushing)\))?(?: \((\d+) resisted\))?(?: \((\d+) absorbed\))?$"
     :id     :melee-damages-target-elemental
@@ -406,9 +412,11 @@
               :damage-type (->kw %5)
               :hit-type    (cond
                              (= %6 "glancing") :glancing
-                             (= %7 "crushing") :crushing)
+                             (= %7 "crushing") :crushing
+                             :else             :normal)
               :resisted    (->int %8)
-              :absorbed    (->int %9))}
+              :absorbed    (->int %9)
+              :damage-type :physical)}
 
    ;;; ---------------------------------------------------------------------------------------------
    ;;; MELEE DAMAGE AVOIDANCE (ABSORB/RESIST/MISS/BLOCK/DODGE/PARRY/EVADE)

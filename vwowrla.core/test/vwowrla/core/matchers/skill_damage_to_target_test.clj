@@ -188,6 +188,7 @@
           :target-name "Lava Surger"
           :skill       "Ambush"
           :damage      1398
+          :damage-type :physical
           :crit?       true
           :absorbed    nil
           :blocked     nil}))
@@ -202,6 +203,7 @@
           :target-name "Lava Surger"
           :skill       "Shield Slam"
           :damage      240
+          :damage-type :physical
           :crit?       false
           :absorbed    nil
           :blocked     nil}))
@@ -216,6 +218,7 @@
           :target-name "Lava Surger"
           :skill       "Whirlwind"
           :damage      902
+          :damage-type :physical
           :crit?       true
           :absorbed    nil
           :blocked     31}))
@@ -230,6 +233,7 @@
           :target-name "Architrex"
           :skill       "Earthquake"
           :damage      1034
+          :damage-type :physical
           :crit?       false
           :absorbed    460
           :blocked     nil})))

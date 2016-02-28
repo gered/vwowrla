@@ -30,7 +30,8 @@
           :target-name "Lava Surger"
           :source-name "Eggs"
           :damage      175
-          :hit-type    nil
+          :damage-type :physical
+          :hit-type    :normal
           :crit?       false
           :absorbed    nil
           :blocked     nil}))
@@ -44,7 +45,8 @@
           :target-name "Lava Annihilator"
           :source-name owner-char-name
           :damage      187
-          :hit-type    nil
+          :damage-type :physical
+          :hit-type    :normal
           :crit?       false
           :absorbed    nil
           :blocked     nil}))
@@ -58,7 +60,8 @@
           :target-name "Futilian"
           :source-name "Lava Surger"
           :damage      1382
-          :hit-type    nil
+          :damage-type :physical
+          :hit-type    :normal
           :crit?       true
           :absorbed    nil
           :blocked     nil}))
@@ -72,7 +75,8 @@
           :target-name "Eggs"
           :source-name "Lava Surger"
           :damage      752
-          :hit-type    nil
+          :damage-type :physical
+          :hit-type    :normal
           :crit?       false
           :absorbed    nil
           :blocked     81}))
@@ -86,6 +90,7 @@
           :target-name "Lava Surger"
           :source-name "Laurent"
           :damage      114
+          :damage-type :physical
           :hit-type    :glancing
           :crit?       false
           :absorbed    nil
@@ -100,6 +105,7 @@
           :target-name "Mightystroon"
           :source-name "Lucifron"
           :damage      1365
+          :damage-type :physical
           :hit-type    :crushing
           :crit?       false
           :absorbed    nil
@@ -114,7 +120,8 @@
           :target-name "Aesthetera"
           :source-name "Flame Imp"
           :damage      147
-          :hit-type    nil
+          :damage-type :physical
+          :hit-type    :normal
           :crit?       false
           :absorbed    395
           :blocked     nil}))
@@ -128,7 +135,8 @@
           :target-name "Eggs"
           :source-name "Magmadar"
           :damage      160
-          :hit-type    nil
+          :damage-type :physical
+          :hit-type    :normal
           :crit?       false
           :absorbed    607
           :blocked     82}))
@@ -142,6 +150,7 @@
           :target-name "Mightystroon"
           :source-name "Gehennas"
           :damage      1530
+          :damage-type :physical
           :hit-type    :crushing
           :crit?       false
           :absorbed    96
@@ -160,7 +169,7 @@
           :source-name "Firelord"
           :damage      792
           :damage-type :fire
-          :hit-type    nil
+          :hit-type    :normal
           :crit?       false
           :absorbed    nil
           :resisted    nil}))
@@ -176,7 +185,7 @@
           :source-name "Twilight's Hammer Ambassador"
           :damage      42
           :damage-type :fire
-          :hit-type    nil
+          :hit-type    :normal
           :crit?       false
           :absorbed    nil
           :resisted    nil}))
@@ -191,7 +200,7 @@
           :source-name "Lava Spawn"
           :damage      1172
           :damage-type :fire
-          :hit-type    nil
+          :hit-type    :normal
           :crit?       true
           :absorbed    nil
           :resisted    nil}))
@@ -206,7 +215,7 @@
           :source-name "Firelord"
           :damage      480
           :damage-type :fire
-          :hit-type    nil
+          :hit-type    :normal
           :crit?       false
           :absorbed    nil
           :resisted    160}))
@@ -221,7 +230,7 @@
           :source-name "Baron Geddon"
           :damage      1592
           :damage-type :fire
-          :hit-type    nil
+          :hit-type    :normal
           :crit?       false
           :absorbed    967
           :resisted    nil}))
@@ -236,7 +245,7 @@
           :source-name "Son of Flame"
           :damage      269
           :damage-type :fire
-          :hit-type    nil
+          :hit-type    :normal
           :crit?       false
           :absorbed    138
           :resisted    135}))
