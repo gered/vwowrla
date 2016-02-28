@@ -10,4 +10,8 @@
                  [prismatic/schema "1.0.5"]
                  [cheshire "5.5.0"]]
 
-  :profiles {:repl {:source-paths ["repl"]}})
+  :profiles {:repl {:source-paths ["repl"]}
+
+             :dev {:dependencies [[pjstadig/humane-test-output "0.7.1"]]
+                   :injections   [(require 'pjstadig.humane-test-output)
+                                  (pjstadig.humane-test-output/activate!)]}})
