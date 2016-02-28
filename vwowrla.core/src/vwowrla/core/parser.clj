@@ -48,15 +48,10 @@
           (process-event event (:log-owner-char-name options))))
       (->unrecognized-event event-metadata))))
 
-(s/defn handle-line
-  [event :- CombatEvent
-   data  :- RaidAnalysis]
-  (handle-event event data))
-
 (s/defn ^:private active-encounter-processing
   [event :- CombatEvent
    data  :- RaidAnalysis]
-  (let [data (handle-line event data)]
+  (let [data (handle-event event data)]
     (if-let [encounter-end (detect-encounter-end event data)]
       (end-encounter event encounter-end data)
       data)))
@@ -67,7 +62,7 @@
   (if-let [encounter-name (detect-encounter-triggered event data)]
     (->> data
          (begin-encounter encounter-name event)
-         (handle-line event))
+         (handle-event event))
     data))
 
 (s/defn ^:private parse-log* :- (s/maybe RaidAnalysis)
