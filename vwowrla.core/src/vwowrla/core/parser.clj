@@ -3,19 +3,35 @@
   (:require
     [clojure.tools.logging :refer [info error warn]]
     [clojure.java.io :as io]
+    [schema.core :as s]
     [vwowrla.core.encounters :as encounters]
     [vwowrla.core.handlers :refer [handle-event]]
     [vwowrla.core.matchers :refer [regex-matchers]])
   (:use
+    vwowrla.core.schemas
     vwowrla.core.preparsing
     vwowrla.core.utils))
 
-(defn active-encounter?
-  [data]
+(s/defn active-encounter? :- s/Bool
+  [data :- RaidAnalysis]
   (not (nil? (:active-encounter data))))
 
-(defn parse-line
-  [^String line {:keys [log-owner-char-name] :as options}]
+(defn- ->ignored-event
+  [parsed-line]
+  (assoc parsed-line
+    :id :ignored
+    :logfmt :ignored))
+
+(defn ->unrecognized-event
+  [parsed-line]
+  (assoc parsed-line
+    :id :unknown
+    :logfmt :unknown
+    :event :unknown))
+
+(s/defn parse-line :- CombatEvent
+  [^String line
+   options :- ParserOptions]
   (let [[timestamp stripped-line] (split-log-timestamp-and-content line)
         sanitized-line            (-> stripped-line
                                       (undo-swstats-fixlogstring)
@@ -31,30 +47,36 @@
                             line-metadata
                             (select-keys matcher [:logfmt :event :id])
                             (apply args-fn regex-matches))]
-        (process-parsed-line parsed-line log-owner-char-name))
-      line-metadata)))
+        (if (= :ignored (:event parsed-line))
+          (->ignored-event parsed-line)
+          (process-parsed-line parsed-line (:log-owner-char-name options))))
+      (->unrecognized-event line-metadata))))
 
-(defn handle-line
-  [parsed-line data]
+(s/defn handle-line
+  [parsed-line :- CombatEvent
+   data        :- RaidAnalysis]
   (handle-event parsed-line data))
 
-(defn- active-encounter-processing
-  [parsed-line data]
+(s/defn ^:private active-encounter-processing
+  [parsed-line :- CombatEvent
+   data        :- RaidAnalysis]
   (let [data (handle-line parsed-line data)]
     (if-let [encounter-end (encounters/detect-encounter-end parsed-line data)]
       (encounters/end-encounter parsed-line encounter-end data)
       data)))
 
-(defn- out-of-encounter-processing
-  [parsed-line data]
+(s/defn ^:private out-of-encounter-processing
+  [parsed-line :- CombatEvent
+   data        :- RaidAnalysis]
   (if-let [encounter-name (encounters/detect-encounter-triggered parsed-line data)]
     (->> data
          (encounters/begin-encounter encounter-name parsed-line)
          (handle-line parsed-line))
     data))
 
-(defn- parse-log*
-  [f options]
+(s/defn ^:private parse-log* :- (s/maybe RaidAnalysis)
+  [f
+   options :- ParserOptions]
   (with-open [rdr (io/reader f)]
     (try
       (reduce
@@ -73,7 +95,7 @@
         (flush)
         (error ex "Parser error.")))))
 
-(defn parse-log
+(s/defn parse-log :- (s/maybe RaidAnalysis)
   [f options]
   (let [line-ending-type (detect-file-line-ending-type f)]
     (if-not line-ending-type
