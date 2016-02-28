@@ -9,6 +9,10 @@
     vwowrla.core.schemas
     vwowrla.core.utils))
 
+(s/defn active-encounter? :- s/Bool
+  [data :- RaidAnalysis]
+  (not (nil? (:active-encounter data))))
+
 (s/defn touch-entity :- RaidAnalysis
   "updates an entity within the current active encounter by resetting it's :last-activity-at timestamp
    or adds a new entity under the given name to the active encounter if it does not already exist. returns

@@ -6,17 +6,13 @@
     [clojure.java.io :as io]
     [schema.core :as s]
     [vwowrla.core.encounters.detection :refer [detect-encounter-end detect-encounter-triggered]]
-    [vwowrla.core.encounters.analysis :refer [begin-encounter end-encounter]]
+    [vwowrla.core.encounters.analysis :refer [begin-encounter end-encounter active-encounter?]]
     [vwowrla.core.events.handlers :refer [handle-event]]
     [vwowrla.core.events.matchers :refer [find-matcher get-line-regex-matches]])
   (:use
     vwowrla.core.schemas
     vwowrla.core.preparsing
     vwowrla.core.utils))
-
-(s/defn active-encounter? :- s/Bool
-  [data :- RaidAnalysis]
-  (not (nil? (:active-encounter data))))
 
 (defn- ->ignored-event
   [event]
@@ -82,10 +78,10 @@
       (reduce
         (fn [data ^String line]
           (try
-            (let [parsed (parse-line line options)]
+            (let [event (parse-line line options)]
               (if (active-encounter? data)
-                (active-encounter-processing parsed data)
-                (out-of-encounter-processing parsed data)))
+                (active-encounter-processing event data)
+                (out-of-encounter-processing event data)))
             (catch Exception ex
               (throw (ex-info "Parser error" {:line line} ex)))))
         {:encounters       []
