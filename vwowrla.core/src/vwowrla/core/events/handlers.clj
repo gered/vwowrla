@@ -1,13 +1,17 @@
 (ns vwowrla.core.events.handlers
   (:require
-    [vwowrla.core.encounters.analysis :as analysis]))
+    [schema.core :as s]
+    [vwowrla.core.encounters.analysis :as analysis])
+  (:use
+    vwowrla.core.schemas))
 
 (defmulti handle-event
   (fn [{:keys [event]} _]
     (keyword event)))
 
-(defmethod handle-event :skill-damage-to-target
-  [{:keys [source-name skill target-name damage damage-type absorbed resisted blocked crit? timestamp] :as event} data]
+(s/defmethod handle-event :skill-damage-to-target :- RaidAnalysis
+  [{:keys [source-name skill target-name damage damage-type absorbed resisted blocked crit? timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   (analysis/process-source-to-target-damage
     source-name
     target-name
@@ -22,8 +26,9 @@
     timestamp
     data))
 
-(defmethod handle-event :skill-avoided-by-target
-  [{:keys [source-name target-name skill avoidance-method timestamp] :as event} data]
+(s/defmethod handle-event :skill-avoided-by-target :- RaidAnalysis
+  [{:keys [source-name target-name skill avoidance-method timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   (analysis/process-source-to-target-damage
     source-name
     target-name
@@ -33,8 +38,9 @@
     timestamp
     data))
 
-(defmethod handle-event :damage-reflected
-  [{:keys [source-name target-name damage damage-type timestamp] :as event} data]
+(s/defmethod handle-event :damage-reflected :- RaidAnalysis
+  [{:keys [source-name target-name damage damage-type timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   (analysis/process-source-to-target-damage
     source-name
     target-name
@@ -46,8 +52,9 @@
     timestamp
     data))
 
-(defmethod handle-event :melee-damage-to-target
-  [{:keys [source-name target-name damage damage-type hit-type absorbed resisted blocked crit? timestamp] :as event} data]
+(s/defmethod handle-event :melee-damage-to-target :- RaidAnalysis
+  [{:keys [source-name target-name damage damage-type hit-type absorbed resisted blocked crit? timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   (analysis/process-source-to-target-damage
     source-name
     target-name
@@ -63,8 +70,9 @@
     timestamp
     data))
 
-(defmethod handle-event :melee-avoided-by-target
-  [{:keys [source-name target-name avoidance-method timestamp] :as event} data]
+(s/defmethod handle-event :melee-avoided-by-target :- RaidAnalysis
+  [{:keys [source-name target-name avoidance-method timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   (analysis/process-source-to-target-damage
     source-name
     target-name
@@ -74,12 +82,14 @@
     timestamp
     data))
 
-(defmethod handle-event :skill-interrupted-by-target
-  [{:keys [source-name target-name skill timestamp] :as event} data]
+(s/defmethod handle-event :skill-interrupted-by-target :- RaidAnalysis
+  [{:keys [source-name target-name skill timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   data)
 
-(defmethod handle-event :dot-damages-target
-  [{:keys [source-name skill target-name damage damage-type absorbed resisted timestamp] :as event} data]
+(s/defmethod handle-event :dot-damages-target :- RaidAnalysis
+  [{:keys [source-name skill target-name damage damage-type absorbed resisted timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   (analysis/process-source-to-target-damage
     source-name
     target-name
@@ -93,29 +103,35 @@
     timestamp
     data))
 
-(defmethod handle-event :cast-begins
-  [{:keys [source-name skill spell? timestamp] :as event} data]
+(s/defmethod handle-event :cast-begins :- RaidAnalysis
+  [{:keys [source-name skill spell? timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   ; don't think we really care about this ?
   data)
 
-(defmethod handle-event :skill-performed-on-target
-  [{:keys [source-name target-name skill spell? extra timestamp] :as event} data]
+(s/defmethod handle-event :skill-performed-on-target :- RaidAnalysis
+  [{:keys [source-name target-name skill spell? extra timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   (analysis/process-source-to-target-cast source-name target-name skill timestamp data))
 
-(defmethod handle-event :cast
-  [{:keys [source-name skill spell? timestamp] :as event} data]
+(s/defmethod handle-event :cast :- RaidAnalysis
+  [{:keys [source-name skill spell? timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   (analysis/process-entity-cast source-name skill timestamp data))
 
-(defmethod handle-event :skill-heals-target
-  [{:keys [source-name skill crit? target-name amount timestamp] :as event} data]
+(s/defmethod handle-event :skill-heals-target :- RaidAnalysis
+  [{:keys [source-name skill crit? target-name amount timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   data)
 
-(defmethod handle-event :resource-gained
-  [{:keys [target-name amount resource-type source-name skill timestamp] :as event} data]
+(s/defmethod handle-event :resource-gained :- RaidAnalysis
+  [{:keys [target-name amount resource-type source-name skill timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   data)
 
-(defmethod handle-event :resource-lost
-  [{:keys [target-name amount resource-type source-name skill timestamp] :as event} data]
+(s/defmethod handle-event :resource-lost :- RaidAnalysis
+  [{:keys [target-name amount resource-type source-name skill timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   (condp = resource-type
     :health (analysis/process-source-to-target-damage
               source-name
@@ -129,33 +145,39 @@
               data)
     data))
 
-(defmethod handle-event :special-gained
-  [{:keys [target-name special source timestamp] :as event} data]
+(s/defmethod handle-event :special-gained :- RaidAnalysis
+  [{:keys [target-name special source timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   data)
 
-(defmethod handle-event :aura-gained
-  [{:keys [target-name aura-name aura-type stacks timestamp] :as event} data]
+(s/defmethod handle-event :aura-gained :- RaidAnalysis
+  [{:keys [target-name aura-name aura-type stacks timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   data)
 
-(defmethod handle-event :aura-lost
-  [{:keys [target-name aura-name faded? stacks timestamp] :as event} data]
+(s/defmethod handle-event :aura-lost :- RaidAnalysis
+  [{:keys [target-name aura-name faded? stacks timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   data)
 
-(defmethod handle-event :other-damage
-  [{:keys [target-name damage damage-type resisted absorbed source timestamp] :as event} data]
+(s/defmethod handle-event :other-damage :- RaidAnalysis
+  [{:keys [target-name damage damage-type resisted absorbed source timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   data)
 
-(defmethod handle-event :death
-  [{:keys [source-name timestamp] :as event} data]
+(s/defmethod handle-event :death :- RaidAnalysis
+  [{:keys [source-name timestamp]} :- CombatEvent
+   data :- RaidAnalysis]
   (analysis/process-entity-death source-name timestamp data))
 
 
-(defmethod handle-event :ignored
-  [{:keys [line] :as event} data]
-  #_(println "[WARN] *** IGNORED ***" line)
+(s/defmethod handle-event :ignored :- RaidAnalysis
+  [{:keys [line]} :- CombatEvent
+   data :- RaidAnalysis]
   data)
 
-(defmethod handle-event :default
-  [{:keys [line] :as event} data]
+(s/defmethod handle-event :default :- RaidAnalysis
+  [{:keys [line]} :- CombatEvent
+   data :- RaidAnalysis]
   (println "[WARN] *** UNRECOGNIZED ***" line)
   data)
