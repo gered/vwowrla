@@ -415,8 +415,7 @@
                              (= %7 "crushing") :crushing
                              :else             :normal)
               :resisted    (->int %8)
-              :absorbed    (->int %9)
-              :damage-type :physical)}
+              :absorbed    (->int %9))}
 
    ;;; ---------------------------------------------------------------------------------------------
    ;;; MELEE DAMAGE AVOIDANCE (ABSORB/RESIST/MISS/BLOCK/DODGE/PARRY/EVADE)
