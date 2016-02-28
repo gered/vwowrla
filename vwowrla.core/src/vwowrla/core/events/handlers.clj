@@ -1,4 +1,4 @@
-(ns vwowrla.core.handlers
+(ns vwowrla.core.events.handlers
   (:require
     [vwowrla.core.encounters.analysis :as analysis]))
 

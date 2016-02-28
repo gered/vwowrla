@@ -1,4 +1,4 @@
-(ns vwowrla.core.matchers
+(ns vwowrla.core.events.matchers
   (:use
     vwowrla.core.utils))
 

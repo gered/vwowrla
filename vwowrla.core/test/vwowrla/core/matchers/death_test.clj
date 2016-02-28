@@ -7,7 +7,7 @@
   (:require
     [vwowrla.core.parser :refer [parse-line]]
     [vwowrla.core.preparsing :refer [parse-log-timestamp]]
-    [vwowrla.core.matchers :refer [regex-matchers]]))
+    [vwowrla.core.events.matchers :refer [regex-matchers]]))
 
 (def options {:log-owner-char-name "Blasticus"
               :year                2015

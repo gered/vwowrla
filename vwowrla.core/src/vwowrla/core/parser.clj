@@ -7,8 +7,8 @@
     [schema.core :as s]
     [vwowrla.core.encounters.detection :refer [detect-encounter-end detect-encounter-triggered]]
     [vwowrla.core.encounters.analysis :refer [begin-encounter end-encounter]]
-    [vwowrla.core.handlers :refer [handle-event]]
-    [vwowrla.core.matchers :refer [regex-matchers]])
+    [vwowrla.core.events.handlers :refer [handle-event]]
+    [vwowrla.core.events.matchers :refer [regex-matchers]])
   (:use
     vwowrla.core.schemas
     vwowrla.core.preparsing
