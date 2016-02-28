@@ -30,6 +30,10 @@
 (s/defn parse-line :- CombatEvent
   [line    :- s/Str
    options :- ParserOptions]
+  "parses a single complete line from a combat log and returns a corresponding
+   combat event map with all the descrete pieces of data picked out from the
+   line. returns :id = :ignored for ignored combat log events, and
+   :id = :unknown for unrecognized events"
   (let [[timestamp stripped-line] (split-log-timestamp-and-content line)
         sanitized-line            (-> stripped-line
                                       (undo-swstats-fixlogstring)
@@ -51,6 +55,12 @@
 (s/defn ^:private active-encounter-processing
   [event :- CombatEvent
    data  :- RaidAnalysis]
+  "processes a combat event within the context of an active encounter. first
+   performs encounter analysis for the event, then attempts to detect if the
+   current active encounter has ended as a result of this event, and if so
+   ends the encounter.
+   should only be called if an encounter is currently active in the current
+   raid analysis data."
   (let [data (handle-event event data)]
     (if-let [encounter-end (detect-encounter-end event data)]
       (end-encounter event encounter-end data)
@@ -59,6 +69,12 @@
 (s/defn ^:private out-of-encounter-processing
   [event :- CombatEvent
    data  :- RaidAnalysis]
+  "processes a combat event outside the context of an active encounter. all
+   this really does is try to determine if the event triggers the start of a
+   new encounter, and if so begins the encounter + performs encounter analysis
+   for the event.
+   should only be called if an encounter is NOT currently active in the
+   current raid analysis data."
   (if-let [encounter-name (detect-encounter-triggered event data)]
     (->> data
          (begin-encounter encounter-name event)
@@ -88,6 +104,8 @@
 
 (s/defn parse-log :- (s/maybe RaidAnalysis)
   [f options]
+  "parses and performs encounter/raid analysis on the given combat log. returns
+   a raid analysis data set if successful."
   (let [line-ending-type (detect-file-line-ending-type f)]
     (if-not line-ending-type
       (warn "Could not detect line-ending type in log file. Assuming" :windows)
