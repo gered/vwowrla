@@ -11,7 +11,7 @@
     vwowrla.core.utils))
 
 (defn- ignore-interaction?
-  [entity-name ignore-entity-list {:keys [target-name source-name] :as parsed-line}]
+  [entity-name ignore-entity-list {:keys [target-name source-name] :as event}]
   (and (or (= entity-name target-name)
            (= entity-name source-name))
        (or (contained-in? target-name ignore-entity-list)
@@ -21,20 +21,20 @@
   "returns true if the given parsed combat log line is between entities that have
    been specified to ignore interactions between for the purposes of detecting
    an encounter trigger"
-  [encounter   :- Encounter
-   parsed-line :- CombatEvent]
+  [encounter :- Encounter
+   event     :- CombatEvent]
   (->> (:entities encounter)
        (filter
          (fn [[entity-name entity-props]]
            (seq (:ignore-interactions-with entity-props))))
        (filter
          (fn [[entity-name entity-props]]
-           (ignore-interaction? entity-name (:ignore-interactions-with entity-props) parsed-line)))
+           (ignore-interaction? entity-name (:ignore-interactions-with entity-props) event)))
        (seq)
        (boolean)))
 
 (defn- ignore-skill?
-  [entity-name ignore-skill-list {:keys [source-name skill] :as parsed-line}]
+  [entity-name ignore-skill-list {:keys [source-name skill] :as event}]
   (and (= entity-name source-name)
        (contained-in? skill ignore-skill-list)))
 
@@ -42,15 +42,15 @@
   "returns true if the given parsed combat log line is for an encounter entity
    that is using a skill that has been specifically indicated should be ignored
    for the purposes of triggering an encounter"
-  [encounter   :- Encounter
-   parsed-line :- CombatEvent]
+  [encounter :- Encounter
+   event     :- CombatEvent]
   (->> (:entities encounter)
        (filter
          (fn [[entity-name entity-props]]
            (seq (:ignore-skills entity-props))))
        (filter
          (fn [[entity-name entity-props]]
-           (ignore-skill? entity-name (:ignore-skills entity-props) parsed-line)))
+           (ignore-skill? entity-name (:ignore-skills entity-props) event)))
        (seq)
        (boolean)))
 
@@ -58,7 +58,7 @@
   "determines if the parsed combat log line is for an event involving any specific encounter entities which
    should cause an encounter to begin, returning the name of the encounter if it should begin, or nil if no
    encounter begin was detected"
-  [{:keys [target-name source-name damage aura-name type skill] :as parsed-line} :- CombatEvent
+  [{:keys [target-name source-name damage aura-name type skill] :as event} :- CombatEvent
    data :- RaidAnalysis]
   (if-let [encounter-name (or (find-defined-encounter-name target-name)
                               (find-defined-encounter-name source-name))]
@@ -67,10 +67,10 @@
              (not (contained-in? skill non-combat-starting-skills)))
       (let [encounter (get defined-encounters encounter-name)]
         (cond
-          (ignored-interaction-event? encounter parsed-line)
+          (ignored-interaction-event? encounter event)
           nil
 
-          (ignored-skill-event? encounter parsed-line)
+          (ignored-skill-event? encounter event)
           nil
 
           ; if either of these are defined, then their criteria MUST pass to

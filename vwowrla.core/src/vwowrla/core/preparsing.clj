@@ -1,6 +1,6 @@
 (ns vwowrla.core.preparsing
   (:import
-    (java.util Calendar Date GregorianCalendar TimeZone))
+    (java.util Calendar Date GregorianCalendar))
   (:require
     [clojure.string :as string]
     [clojure.java.io :as io]
@@ -14,7 +14,7 @@
 (def problem-entity-name-to-fixed-name
   (reduce
     (fn [m problem-name]
-      (let [fixed-name (.replace problem-name "'s" "s")]
+      (let [fixed-name (.replace ^String problem-name "'s" "s")]
         (-> m
             (assoc-in [:problem-to-fixed problem-name] fixed-name)
             (assoc-in [:fixed-to-problem fixed-name] problem-name))))
@@ -42,7 +42,7 @@
   [line :- s/Str]
   (.replace ^String line " 's" "'s"))
 
-(s/defn parse-log-timestamp :- Date
+(s/defn parse-log-timestamp :- (s/maybe Date)
   [timestamp :- s/Str
    options   :- ParserOptions]
   (if-let [matches (re-matches #"^(\d{1,2})\/(\d{1,2}) (\d{1,2}):(\d{2}):(\d{2})\.(\d{3})$" timestamp)]
@@ -58,11 +58,11 @@
   [line :- s/Str]
   (string/split line #"  " 2))
 
-(s/defn process-parsed-line :- CombatEvent
-  [{:keys [source-name target-name source] :as parsed-line} :- CombatEvent
+(s/defn process-event :- CombatEvent
+  [{:keys [source-name target-name source] :as event} :- CombatEvent
    log-owner-char-name :- s/Str]
   (merge
-    parsed-line
+    event
     (if source-name
       {:source-name (if (= "you" (string/lower-case source-name))
                       log-owner-char-name

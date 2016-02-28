@@ -790,3 +790,13 @@
               :source-name %1)}
 
    ])
+
+(defn find-matcher
+  [^String line]
+  (->> regex-matchers
+       (filter #(re-matches (:regex %) line))
+       (first)))
+
+(defn get-line-regex-matches
+  [^String line matcher]
+  (rest (re-matches (:regex matcher) line)))

@@ -8,7 +8,7 @@
     [vwowrla.core.encounters.detection :refer [detect-encounter-end detect-encounter-triggered]]
     [vwowrla.core.encounters.analysis :refer [begin-encounter end-encounter]]
     [vwowrla.core.events.handlers :refer [handle-event]]
-    [vwowrla.core.events.matchers :refer [regex-matchers]])
+    [vwowrla.core.events.matchers :refer [find-matcher get-line-regex-matches]])
   (:use
     vwowrla.core.schemas
     vwowrla.core.preparsing
@@ -19,61 +19,59 @@
   (not (nil? (:active-encounter data))))
 
 (defn- ->ignored-event
-  [parsed-line]
-  (assoc parsed-line
+  [event]
+  (assoc event
     :id :ignored
     :logfmt :ignored))
 
 (defn ->unrecognized-event
-  [parsed-line]
-  (assoc parsed-line
+  [event]
+  (assoc event
     :id :unknown
     :logfmt :unknown
     :event :unknown))
 
 (s/defn parse-line :- CombatEvent
-  [^String line
+  [line    :- s/Str
    options :- ParserOptions]
   (let [[timestamp stripped-line] (split-log-timestamp-and-content line)
         sanitized-line            (-> stripped-line
                                       (undo-swstats-fixlogstring)
                                       (sanitize-entity-names))
-        line-metadata             {:timestamp (parse-log-timestamp timestamp options)
+        event-metadata            {:timestamp (parse-log-timestamp timestamp options)
                                    :line      line}]
-    (if-let [matcher (->> regex-matchers
-                          (filter #(re-matches (:regex %) sanitized-line))
-                          (first))]
-      (let [regex-matches (rest (re-matches (:regex matcher) sanitized-line))
-            args-fn       (or (:args matcher) (fn [& _]))
-            parsed-line   (merge
-                            line-metadata
-                            (select-keys matcher [:logfmt :event :id])
-                            (apply args-fn regex-matches))]
-        (if (= :ignored (:event parsed-line))
-          (->ignored-event parsed-line)
-          (process-parsed-line parsed-line (:log-owner-char-name options))))
-      (->unrecognized-event line-metadata))))
+    (if-let [matcher (find-matcher sanitized-line)]
+      (let [matches (get-line-regex-matches sanitized-line matcher)
+            args-fn (or (:args matcher) (fn [& _]))
+            event   (merge
+                      event-metadata
+                      (select-keys matcher [:logfmt :event :id])
+                      (apply args-fn matches))]
+        (if (= :ignored (:event event))
+          (->ignored-event event)
+          (process-event event (:log-owner-char-name options))))
+      (->unrecognized-event event-metadata))))
 
 (s/defn handle-line
-  [parsed-line :- CombatEvent
-   data        :- RaidAnalysis]
-  (handle-event parsed-line data))
+  [event :- CombatEvent
+   data  :- RaidAnalysis]
+  (handle-event event data))
 
 (s/defn ^:private active-encounter-processing
-  [parsed-line :- CombatEvent
-   data        :- RaidAnalysis]
-  (let [data (handle-line parsed-line data)]
-    (if-let [encounter-end (detect-encounter-end parsed-line data)]
-      (end-encounter parsed-line encounter-end data)
+  [event :- CombatEvent
+   data  :- RaidAnalysis]
+  (let [data (handle-line event data)]
+    (if-let [encounter-end (detect-encounter-end event data)]
+      (end-encounter event encounter-end data)
       data)))
 
 (s/defn ^:private out-of-encounter-processing
-  [parsed-line :- CombatEvent
-   data        :- RaidAnalysis]
-  (if-let [encounter-name (detect-encounter-triggered parsed-line data)]
+  [event :- CombatEvent
+   data  :- RaidAnalysis]
+  (if-let [encounter-name (detect-encounter-triggered event data)]
     (->> data
-         (begin-encounter encounter-name parsed-line)
-         (handle-line parsed-line))
+         (begin-encounter encounter-name event)
+         (handle-line event))
     data))
 
 (s/defn ^:private parse-log* :- (s/maybe RaidAnalysis)
