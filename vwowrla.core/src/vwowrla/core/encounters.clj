@@ -4,8 +4,10 @@
   (:require
     [clojure.java.io :as io]
     [clojure.tools.logging :refer [info error]]
+    [schema.core :as s]
     [cheshire.core :as json])
   (:use
+    vwowrla.core.schemas
     vwowrla.core.utils))
 
 (def defined-encounters (get-edn-resource "encounters.edn"))
@@ -18,11 +20,11 @@
 (declare count-currently-dead)
 (declare get-entity-last-activity)
 
-(defn find-defined-encounter-name
+(s/defn find-defined-encounter-name :- (s/maybe s/Str)
   "returns the name of a defined encounter which includes the given entity in it's
    list of trigger entities. returns nil if there is no encounter which includes the
    given entity"
-  [entity-name]
+  [entity-name :- (s/maybe s/Str)]
   (->> defined-encounters
        (filter (fn [[_ {:keys [entities]}]]
                  (->> entities
@@ -30,60 +32,69 @@
                       (first))))
        (ffirst)))
 
-(defn find-past-encounters
+(s/defn find-past-encounters :- [Encounter]
   "return a list of all previously parsed encounters (successful and not) matching the encounter name"
-  [encounter-name data]
+  [encounter-name :- s/Str
+   data           :- RaidAnalysis]
   (->> (:encounters data)
        (filter #(= (:name %) encounter-name))))
 
-(defn any-successful-encounters?
+(s/defn any-successful-encounters? :- s/Bool
   "returns true if there are any successful parsed encounters matching the encounter name"
-  [encounter-name data]
+  [encounter-name :- s/Str
+   data           :- RaidAnalysis]
   (->> (find-past-encounters encounter-name data)
        (map :wipe-or-timeout?)
        (filter false?)
        (empty?)
        (not)))
 
-(defn update-active-encounter
+(s/defn update-active-encounter :- RaidAnalysis
   "updates the active encounter using function f which will take the current active
    encounter and any supplied args, returning a new active encounter which is
    'updated' in the original full parsed data and then finally returned."
-  [data f & args]
+  [data :- RaidAnalysis
+   f & args]
   (apply update-in data [:active-encounter] f args))
 
-(defn update-all-entities
+(s/defn update-all-entities :- Encounter
   "updates all entities in the encounter using function f which takes the current
    entity and any supplied args, returning a new entity which is 'updated' in the
    original encounter. returns the encounter with the modified entity data."
-  [encounter f & args]
+  [encounter :- Encounter
+   f & args]
   (reduce
     (fn [encounter [entity-name entity]]
       (assoc-in encounter [:entities entity-name] (apply f entity args)))
     encounter
     (:entities encounter)))
 
-(defn update-all-active-encounter-entities
+(s/defn update-all-active-encounter-entities :- RaidAnalysis
   "updates all entities in the current active encounter in the full parsed data
    using function f which takes the current entity and any supplied args, returning
    a new entity which is 'updated' in the original encounter. returns the updated
    full parsed data."
-  [data f & args]
+  [data :- RaidAnalysis
+   f & args]
   (update-active-encounter data #(update-all-entities % f args)))
 
-(defn update-entity
+(s/defn update-entity :- RaidAnalysis
   "updates an entity in the full parsed data's active encounter using function f
    which takes the current entity and any supplied args, returning the new entity
    which is 'updated' in the active encounter. returns the updated full parsed data."
-  [data entity-name f & args]
+  [data        :- RaidAnalysis
+   entity-name :- s/Str
+   f & args]
   (apply update-in data [:active-encounter :entities entity-name] f args))
 
-(defn update-entity-field
+(s/defn update-entity-field :- RaidAnalysis
   "updates a specific field within an entity pointed to by ks in the full parsed
    data's active encounter using function f which takes the current entity and any
    supplied args, returning the new entity which is 'updated' in the active encounter.
    returns the updated full parsed data."
-  [data entity-name ks f & args]
+  [data        :- RaidAnalysis
+   entity-name :- s/Str
+   ks f & args]
   (apply update-in data (concat [:active-encounter :entities entity-name] ks) f args))
 
 (defn- ignore-interaction?
@@ -93,11 +104,12 @@
        (or (contained-in? target-name ignore-entity-list)
            (contained-in? source-name ignore-entity-list))))
 
-(defn ignored-interaction-event?
+(s/defn ignored-interaction-event? :- s/Bool
   "returns true if the given parsed combat log line is between entities that have
    been specified to ignore interactions between for the purposes of detecting
    an encounter trigger"
-  [encounter parsed-line]
+  [encounter   :- Encounter
+   parsed-line :- CombatEvent]
   (->> (:entities encounter)
        (filter
          (fn [[entity-name entity-props]]
@@ -105,18 +117,20 @@
        (filter
          (fn [[entity-name entity-props]]
            (ignore-interaction? entity-name (:ignore-interactions-with entity-props) parsed-line)))
-       (seq)))
+       (seq)
+       (boolean)))
 
 (defn- ignore-skill?
   [entity-name ignore-skill-list {:keys [source-name skill] :as parsed-line}]
   (and (= entity-name source-name)
        (contained-in? skill ignore-skill-list)))
 
-(defn ignored-skill-event?
+(s/defn ignored-skill-event? :- s/Bool
   "returns true if the given parsed combat log line is for an encounter entity
    that is using a skill that has been specifically indicated should be ignored
    for the purposes of triggering an encounter"
-  [encounter parsed-line]
+  [encounter   :- Encounter
+   parsed-line :- CombatEvent]
   (->> (:entities encounter)
        (filter
          (fn [[entity-name entity-props]]
@@ -124,17 +138,19 @@
        (filter
          (fn [[entity-name entity-props]]
            (ignore-skill? entity-name (:ignore-skills entity-props) parsed-line)))
-       (seq)))
+       (seq)
+       (boolean)))
 
 ;;;
 ;;; encounter start/stop
 ;;;
 
-(defn detect-encounter-triggered
+(s/defn detect-encounter-triggered :- (s/maybe s/Str)
   "determines if the parsed combat log line is for an event involving any specific encounter entities which
    should cause an encounter to begin, returning the name of the encounter if it should begin, or nil if no
    encounter begin was detected"
-  [{:keys [target-name source-name damage aura-name type skill] :as parsed-line} data]
+  [{:keys [target-name source-name damage aura-name type skill] :as parsed-line} :- CombatEvent
+   data :- RaidAnalysis]
   (if-let [encounter-name (or (find-defined-encounter-name target-name)
                               (find-defined-encounter-name source-name))]
     (if (and (not (any-successful-encounters? encounter-name data))
@@ -163,10 +179,12 @@
           :else
           encounter-name)))))
 
-(defn begin-encounter
+(s/defn begin-encounter :- RaidAnalysis
   "sets up a new active encounter in the parsed data, returning the new parsed data set ready to use for
    parsing a new encounter."
-  [encounter-name {:keys [timestamp line] :as parsed-line} data]
+  [encounter-name           :- s/Str
+   {:keys [timestamp line]} :- CombatEvent
+   data                     :- RaidAnalysis]
   (info "Beginning encounter" (str "\"" encounter-name "\"") "detected on line:" line)
   (assoc data :active-encounter
               {:name             encounter-name
@@ -175,12 +193,13 @@
                :skills           {}
                :trigger-entities (get-in defined-encounters [encounter-name :entities])}))
 
-(defn detect-encounter-end
+(s/defn detect-encounter-end :- (s/maybe s/Keyword)
   "determines if the currently active encounter should end based on the active encounter parsed data.
    returns :killed if the encounter should end due to a successful kill, :wipe-or-timeout if the
    encounter was found to be over due to a raid wipe or other non-activity timeout, or nil if the
    active encounter is not over yet."
-  [{:keys [^Date timestamp] :as parsed-line} data]
+  [{:keys [^Date timestamp]} :- CombatEvent
+   data                      :- RaidAnalysis]
   (let [trigger-entites (get-in data [:active-encounter :trigger-entities])]
     (cond
       (every?
@@ -203,11 +222,13 @@
         trigger-entites)
       :wipe-or-timeout)))
 
-(defn end-encounter
+(s/defn end-encounter :- RaidAnalysis
   "ends the current active encounter in the parsed data, moving it from :active-encounter and inserted it into the
    end of the :encounters list. finalizes the encounter by performing various final entity statistic calculations and
    marks the encounter as successful or not. returns the new parsed data set without any active encounter set."
-  [{:keys [timestamp line] :as parsed-line} encounter-end-cause data]
+  [{:keys [timestamp line]} :- CombatEvent
+   encounter-end-cause      :- s/Keyword
+   data                     :- RaidAnalysis]
   (let [wipe-or-timeout? (= encounter-end-cause :wipe-or-timeout)]
     (info "Ending encounter" (str "\"" (get-in data [:active-encounter :name]) "\"") "detected on line:" line)
     (if wipe-or-timeout?
@@ -224,11 +245,13 @@
 ;;; entity manipulation
 ;;;
 
-(defn touch-entity
+(s/defn touch-entity :- RaidAnalysis
   "updates an entity within the current active encounter by resetting it's :last-activity-at timestamp
    or adds a new entity under the given name to the active encounter if it does not already exist. returns
    the new parsed data set with the updated entity information."
-  [data entity-name timestamp]
+  [data        :- RaidAnalysis
+   entity-name :- s/Str
+   timestamp   :- Date]
   (if-not (get-in data [:active-encounter :entities entity-name])
     (assoc-in data [:active-encounter :entities entity-name]
               {:name                 entity-name
@@ -252,18 +275,15 @@
                :alive-duration       0})
     (assoc-in data [:active-encounter :entities entity-name :last-activity-at] timestamp)))
 
-(defn get-entity-last-activity
-  [entity-name data]
+(s/defn get-entity-last-activity :- (s/maybe Date)
+  [entity-name :- s/Str
+   data        :- RaidAnalysis]
   (get-in data [:active-encounter :entities entity-name :last-activity-at]))
 
-(defn get-entity-alive-time
+(s/defn get-entity-alive-time :- Long
   "returns the number of milliseconds of the encounter that the entity was alive for"
-  [{:keys [deaths resurrections] :as entity} {:keys [started-at ended-at] :as encounter}]
-  ;(println (:name entity))
-  ;(println "started-at" started-at)
-  ;(println "ended-at  " ended-at)
-  ;(println "deaths    " deaths)
-  ;(println "resurrects" resurrections)
+  [{:keys [deaths resurrections]}              :- Entity
+   {:keys [started-at ended-at] :as encounter} :- Encounter]
   (if (and (= 0 (count deaths))
            (= 0 (count resurrections)))
     (:duration encounter)
@@ -273,10 +293,8 @@
                            [{:status :end :at ended-at}]) x
                          (remove empty? x)
                          (sort-by :at x))]
-      ;(println ">" segments)
       (reduce
         (fn [{:keys [total current-status from] :as result} {:keys [status at]}]
-          ;(println ">>" current-status from status at)
           (cond
             ; is the first state change we find a resurrect? (e.g. they were dead when the fight began)
             (and (nil? current-status)
@@ -320,13 +338,14 @@
          :from started-at}
         segments))))
 
-(defn finalize-entity-auras
-  [entity timestamp]
+(s/defn finalize-entity-auras :- Entity
+  [entity    :- Entity
+   timestamp :- Date]
   ; TODO
   entity)
 
-(defn finalize-entities
-  [data]
+(s/defn finalize-entities :- RaidAnalysis
+  [data :- RaidAnalysis]
   (update-active-encounter
     data
     (fn [encounter]
@@ -345,31 +364,32 @@
                                            1000)))))
           (update-all-entities finalize-entity-auras (:ended-at encounter))))))
 
-(defn calculate-encounter-stats
-  [data]
+(s/defn calculate-encounter-stats :- RaidAnalysis
+  [data :- RaidAnalysis]
   (-> data
       (update-active-encounter
         (fn [{:keys [started-at ended-at] :as encounter}]
           (assoc encounter :duration (time-between started-at ended-at))))
       (finalize-entities)))
 
-(defn count-currently-dead
-  [data entity-name]
+(s/defn count-currently-dead :- s/Num
+  [data        :- RaidAnalysis
+   entity-name :- s/Str]
   (if-let [entity (get-in data [:active-encounter :entities entity-name])]
     (let [num-deaths     (count (:deaths entity))
           num-resurrects (count (:resurrections entity))]
       (- num-deaths num-resurrects))
     0))
 
-(defn update-damage-averages
-  [{:keys [num-hits total-hit-damage total-crit-damage num-crits] :as totals}]
+(s/defn update-damage-averages :- SkillStatistics
+  [{:keys [num-hits total-hit-damage total-crit-damage num-crits] :as totals} :- SkillStatistics]
   (-> totals
       (update-in [:average-hit] #(if (> num-hits 0) (int (/ total-hit-damage num-hits)) %))
       (update-in [:average-crit] #(if (> num-crits 0) (int (/ total-crit-damage num-crits)) %))))
 
-(defn add-from-damage-properties
-  [totals
-   {:keys [damage damage-type hit-type crit? partial-absorb partial-resist partial-block avoidance-method] :as damage-properties}]
+(s/defn add-from-damage-properties :- SkillStatistics
+  [totals :- (s/maybe SkillStatistics)
+   {:keys [damage damage-type hit-type crit? partial-absorb partial-resist partial-block avoidance-method]} :- DamageProperties]
   (let [damage (or damage 0)]
     (-> (or totals {:damage             0
                     :max-hit            0
@@ -419,16 +439,26 @@
         (update-in [:num-immune] #(if (= avoidance-method :immune) (inc %) %))
         (update-damage-averages))))
 
-(defn entity-takes-damage
-  [data entity-name from-entity-name {:keys [skill damage damage-type] :as damage-properties} timestamp]
+(s/defn entity-takes-damage :- RaidAnalysis
+  [data                    :- RaidAnalysis
+   entity-name             :- s/Str
+   from-entity-name        :- s/Str
+   {:keys [skill damage damage-type]
+    :as damage-properties} :- DamageProperties
+   timestamp               :- Date]
   (-> data
       (update-entity-field entity-name [:damage-in-total] #(if damage (+ (or % 0) damage) %))
       (update-entity-field entity-name [:damage-in-totals damage-type] #(if damage (+ (or % 0) damage) %))
       (update-entity-field entity-name [:damage-in skill] #(add-from-damage-properties % damage-properties))
       (update-entity-field entity-name [:damage-in-by-entity from-entity-name skill] #(add-from-damage-properties % damage-properties))))
 
-(defn entity-deals-damage
-  [data entity-name to-entity-name {:keys [skill damage damage-type] :as damage-properties} timestamp]
+(s/defn entity-deals-damage :- RaidAnalysis
+  [data                    :- RaidAnalysis
+   entity-name             :- s/Str
+   to-entity-name          :- s/Str
+   {:keys [skill damage damage-type]
+    :as damage-properties} :- DamageProperties
+   timestamp               :- Date]
   (-> data
       (update-entity-field entity-name [:damage-out-total] #(if damage (+ (or % 0) damage) %))
       (update-entity-field entity-name [:damage-out-totals damage-type] #(if damage (+ (or % 0) damage) %))
@@ -439,8 +469,12 @@
 ;;; main combat log entry processing entry points
 ;;;
 
-(defn process-source-to-target-damage
-  [source-name target-name damage-properties timestamp data]
+(s/defn process-source-to-target-damage :- RaidAnalysis
+  [source-name       :- s/Str
+   target-name       :- s/Str
+   damage-properties :- DamageProperties
+   timestamp         :- Date
+   data              :- RaidAnalysis]
   (-> data
       (touch-entity source-name timestamp)
       (touch-entity target-name timestamp)
@@ -448,17 +482,26 @@
       (entity-deals-damage source-name target-name damage-properties timestamp))
   )
 
-(defn process-entity-death
-  [entity-name timestamp data]
+(s/defn process-entity-death :- RaidAnalysis
+  [entity-name :- s/Str
+   timestamp   :- Date
+   data        :- RaidAnalysis]
   (-> data
       (touch-entity entity-name timestamp)
       (update-entity-field entity-name [:deaths] #(conj % {:timestamp timestamp}))
       (update-entity entity-name finalize-entity-auras timestamp)))
 
-(defn process-source-to-target-cast
-  [source-name target-name skill-name timestamp data]
+(s/defn process-source-to-target-cast :- RaidAnalysis
+  [source-name :- s/Str
+   target-name :- s/Str
+   skill-name  :- s/Str
+   timestamp   :- Date
+   data        :- RaidAnalysis]
   data)
 
-(defn process-entity-cast
-  [entity-name skill-name timestamp data]
+(s/defn process-entity-cast :- RaidAnalysis
+  [entity-name :- s/Str
+   skill-name  :- s/Str
+   timestamp   :- Date
+   data        :- RaidAnalysis]
   data)

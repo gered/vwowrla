@@ -1,10 +1,12 @@
 (ns vwowrla.core.preparsing
   (:import
-    (java.util Calendar GregorianCalendar TimeZone))
+    (java.util Calendar Date GregorianCalendar TimeZone))
   (:require
     [clojure.string :as string]
-    [clojure.java.io :as io])
+    [clojure.java.io :as io]
+    [schema.core :as s])
   (:use
+    vwowrla.core.schemas
     vwowrla.core.utils))
 
 (def problem-entity-names (get-text-resource-as-lines "problem_entity_names.txt"))
@@ -20,43 +22,45 @@
      :fixed-to-problem {}}
     problem-entity-names))
 
-(defn sanitize-entity-name
-  [^String entity-name]
+(s/defn sanitize-entity-name :- s/Str
+  [entity-name :- s/Str]
   (get-in problem-entity-name-to-fixed-name [:problem-to-fixed entity-name] entity-name))
 
-(defn get-original-entity-name
-  [^String potentially-sanitized-entity-name]
+(s/defn get-original-entity-name :- s/Str
+  [potentially-sanitized-entity-name :- s/Str]
   (get-in problem-entity-name-to-fixed-name [:fixed-to-problem potentially-sanitized-entity-name] potentially-sanitized-entity-name))
 
-(defn sanitize-entity-names
-  [^String line]
+(s/defn sanitize-entity-names :- s/Str
+  [line :- s/Str]
   (reduce
     (fn [^String line [^String problem-name ^String fixed-name]]
       (.replace line problem-name fixed-name))
     line
     (:problem-to-fixed problem-entity-name-to-fixed-name)))
 
-(defn undo-swstats-fixlogstring
-  [^String line]
-  (.replace line " 's" "'s"))
+(s/defn undo-swstats-fixlogstring :- s/Str
+  [line :- s/Str]
+  (.replace ^String line " 's" "'s"))
 
-(defn parse-log-timestamp
-  [^String timestamp {:keys [^long year ^TimeZone timezone windows?] :as options}]
+(s/defn parse-log-timestamp :- Date
+  [timestamp :- s/Str
+   options   :- ParserOptions]
   (if-let [matches (re-matches #"^(\d{1,2})\/(\d{1,2}) (\d{1,2}):(\d{2}):(\d{2})\.(\d{3})$" timestamp)]
     (let [c (GregorianCalendar.)
           [month day hour minute second millis] (rest matches)]
       (.clear c)
-      (.setTimeZone c timezone)
-      (.set c year (if windows? (dec (->int month)) (->int month)) (->int day) (->int hour) (->int minute) (->int second))
+      (.setTimeZone c (:timezone options))
+      (.set c (:year options) (if (:windows? options) (dec (->int month)) (->int month)) (->int day) (->int hour) (->int minute) (->int second))
       (.set c Calendar/MILLISECOND (->int millis))
       (.getTime c))))
 
-(defn split-log-timestamp-and-content
-  [^String line]
-  (clojure.string/split line #"  " 2))
+(s/defn split-log-timestamp-and-content :- [s/Str]
+  [line :- s/Str]
+  (string/split line #"  " 2))
 
-(defn process-parsed-line
-  [{:keys [source-name target-name source] :as parsed-line} ^String log-owner-char-name]
+(s/defn process-parsed-line :- CombatEvent
+  [{:keys [source-name target-name source] :as parsed-line} :- CombatEvent
+   log-owner-char-name :- s/Str]
   (merge
     parsed-line
     (if source-name

@@ -14,6 +14,15 @@
 
 ;; model schemas
 
+(def Milliseconds java.lang.Long)
+(def UnixTimestamp java.lang.Long)
+
+(def ParserOptions
+  {:log-owner-char-name       s/Str
+   :year                      s/Int
+   :timezone                  java.util.TimeZone
+   (s/optional-key :windows?) s/Bool})
+
 (def CombatEvent
   {:id                                s/Keyword
    :logfmt                            s/Keyword
@@ -42,15 +51,23 @@
    (s/optional-key :stacks)           (s/maybe s/Num)
    (s/optional-key :faded?)           s/Bool})
 
+; TODO
+(def SkillStatistics
+  {s/Any s/Any})
+
+; TODO
+(def Entity
+  {s/Any s/Any})
+
+; TODO
 (def Encounter
   {s/Any s/Any})
 
+; TODO
 (def RaidAnalysis
   {:encounters       [Encounter]
    :active-encounter (s/maybe Encounter)})
 
-(def ParserOptions
-  {:log-owner-char-name       s/Str
-   :year                      s/Int
-   :timezone                  java.util.TimeZone
-   (s/optional-key :windows?) s/Bool})
+; TODO
+(def DamageProperties
+  {s/Any s/Any})
