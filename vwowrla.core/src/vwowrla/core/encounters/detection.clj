@@ -21,7 +21,7 @@
   "returns true if the given parsed combat log line is between entities that have
    been specified to ignore interactions between for the purposes of detecting
    an encounter trigger"
-  [encounter :- Encounter
+  [encounter :- DefinedEncounter
    event     :- CombatEvent]
   (->> (:entities encounter)
        (filter
@@ -42,7 +42,7 @@
   "returns true if the given parsed combat log line is for an encounter entity
    that is using a skill that has been specifically indicated should be ignored
    for the purposes of triggering an encounter"
-  [encounter :- Encounter
+  [encounter :- DefinedEncounter
    event     :- CombatEvent]
   (->> (:entities encounter)
        (filter

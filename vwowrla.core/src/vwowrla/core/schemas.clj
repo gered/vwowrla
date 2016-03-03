@@ -23,6 +23,19 @@
    :timezone                  java.util.TimeZone
    (s/optional-key :windows?) s/Bool})
 
+(def DefinedEncounterEntity
+  {:count                                     s/Num
+   (s/optional-key :must-kill-count)          s/Num
+   (s/optional-key :ignore-interactions-with) [s/Str]
+   (s/optional-key :ignore-skills)            [s/Str]})
+
+(def DefinedEncounter
+  {:entities                            {s/Str DefinedEncounterEntity}
+   (s/optional-key :trigger-on-damage?) s/Bool
+   (s/optional-key :trigger-on-aura?)   s/Bool
+   (s/optional-key :trigger-on-debuff?) s/Bool
+   (s/optional-key :trigger-on-buff?)   s/Bool})
+
 (def CombatEvent
   {:id                                s/Keyword
    :logfmt                            s/Keyword
