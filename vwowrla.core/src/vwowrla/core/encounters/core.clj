@@ -60,15 +60,6 @@
     encounter
     (:entities encounter)))
 
-(s/defn update-all-active-encounter-entities :- RaidAnalysis
-  "updates all entities in the current active encounter in the full parsed data
-   using function f which takes the current entity and any supplied args, returning
-   a new entity which is 'updated' in the original encounter. returns the updated
-   full parsed data."
-  [data :- RaidAnalysis
-   f & args]
-  (update-active-encounter data #(update-all-entities % f args)))
-
 (s/defn update-entity :- Encounter
   "updates an entity (specified by name) in the encounter using function f which
    takes the current entity (or nil if no such entity exists in the encounter) and
