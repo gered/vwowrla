@@ -10,17 +10,17 @@
     vwowrla.core.schemas
     vwowrla.core.utils))
 
-(defn- ignore-interaction?
+(defn- ignore-encounter-entity-interaction?
   [entity-name ignore-entity-list {:keys [target-name source-name] :as event}]
   (and (or (= entity-name target-name)
            (= entity-name source-name))
        (or (contained-in? target-name ignore-entity-list)
            (contained-in? source-name ignore-entity-list))))
 
-(s/defn ignored-interaction-event? :- s/Bool
-  "returns true if the given parsed combat log line is between entities that have
-   been specified to ignore interactions between for the purposes of detecting
-   an encounter trigger"
+(s/defn ignored-encounter-entity-interaction-event? :- s/Bool
+  "returns true if the given combat event is to do with an encounter entity and another
+   entity that has been listed on the encounter entity's ignore list, indicating that
+   the combat event should be ignored for the purposes of triggering an encounter"
   [encounter :- DefinedEncounter
    event     :- CombatEvent]
   (->> (:entities encounter)
@@ -29,19 +29,18 @@
            (seq (:ignore-interactions-with entity-props))))
        (filter
          (fn [[entity-name entity-props]]
-           (ignore-interaction? entity-name (:ignore-interactions-with entity-props) event)))
+           (ignore-encounter-entity-interaction? entity-name (:ignore-interactions-with entity-props) event)))
        (seq)
        (boolean)))
 
-(defn- ignore-skill?
+(defn- ignore-encounter-entity-skill?
   [entity-name ignore-skill-list {:keys [source-name skill] :as event}]
   (and (= entity-name source-name)
        (contained-in? skill ignore-skill-list)))
 
-(s/defn ignored-skill-event? :- s/Bool
-  "returns true if the given parsed combat log line is for an encounter entity
-   that is using a skill that has been specifically indicated should be ignored
-   for the purposes of triggering an encounter"
+(s/defn ignored-encounter-entity-skill-event? :- s/Bool
+  "returns true if the given combat event is for an encounter entity that is using a skill
+   that should be ignored for the purposes of triggering an encounter"
   [encounter :- DefinedEncounter
    event     :- CombatEvent]
   (->> (:entities encounter)
@@ -50,7 +49,7 @@
            (seq (:ignore-skills entity-props))))
        (filter
          (fn [[entity-name entity-props]]
-           (ignore-skill? entity-name (:ignore-skills entity-props) event)))
+           (ignore-encounter-entity-skill? entity-name (:ignore-skills entity-props) event)))
        (seq)
        (boolean)))
 
@@ -60,20 +59,32 @@
    detected"
   [{:keys [target-name source-name damage aura-name type skill] :as event} :- CombatEvent
    data :- RaidAnalysis]
+  ; find the name of a defined encounter which includes either the target-name entity
+  ; or source-name entity from the given combat event within the encounters list of entities
+  ; (put another way, determine if the current combat event _somehow_ involves any entity
+  ; that is part of a known encounter)
   (if-let [encounter-name (or (find-defined-encounter-name target-name)
                               (find-defined-encounter-name source-name))]
+    ; disregard this combat event (and not start an encounter) if:
+    ; - we haven't already got a successful encounter of the same name, OR
+    ; - this combat event is regarding an aura gain/loss and the aura name is on the global
+    ;   ignore list for encounter triggering, OR
+    ; - this combat event is regarding a skill use and the skill name is on the global
+    ;   ignore list for encounter triggering
     (if (and (not (any-successful-encounters? encounter-name data))
              (not (contained-in? aura-name non-combat-starting-auras))
              (not (contained-in? skill non-combat-starting-skills)))
+      ; now look at individual encounter-specific criteria for whether this combat event
+      ; can trigger the encounter or not
       (let [encounter (get defined-encounters encounter-name)]
         (cond
-          (ignored-interaction-event? encounter event)
+          (ignored-encounter-entity-interaction-event? encounter event)
           nil
 
-          (ignored-skill-event? encounter event)
+          (ignored-encounter-entity-skill-event? encounter event)
           nil
 
-          ; if either of these are defined, then their criteria MUST pass to
+          ; if ANY of these are defined, then their criteria MUST pass to
           ; trigger an encounter
           (or (:trigger-on-damage? encounter)
               (:trigger-on-aura? encounter)
