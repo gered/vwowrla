@@ -13,15 +13,15 @@
   [data :- RaidAnalysis]
   (not (nil? (:active-encounter data))))
 
-(s/defn touch-entity :- RaidAnalysis
-  "updates an entity within the current active encounter by resetting it's :last-activity-at timestamp
-   or adds a new entity under the given name to the active encounter if it does not already exist. returns
-   the new parsed data set with the updated entity information."
-  [data        :- RaidAnalysis
+(s/defn touch-entity :- Encounter
+  "updates an entity within the encounter by resetting it's :last-activity-at timestamp to the timestamp
+   provided, or adds a new entity under the given name to the active encounter if it does not already
+   exist. returns encounter with the updated entity information."
+  [encounter   :- Encounter
    entity-name :- s/Str
    timestamp   :- Date]
-  (if-not (get-in data [:active-encounter :entities entity-name])
-    (assoc-in data [:active-encounter :entities entity-name]
+  (if-not (get-in encounter [:entities entity-name])
+    (assoc-in encounter [:entities entity-name]
               {:name                 entity-name
                :added-at             timestamp
                :last-activity-at     timestamp
@@ -41,12 +41,14 @@
                :deaths               []
                :resurrections        []
                :alive-duration       0})
-    (assoc-in data [:active-encounter :entities entity-name :last-activity-at] timestamp)))
+    (assoc-in encounter [:entities entity-name :last-activity-at] timestamp)))
 
 (s/defn get-entity-last-activity :- (s/maybe Date)
   [entity-name :- s/Str
-   data        :- RaidAnalysis]
-  (get-in data [:active-encounter :entities entity-name :last-activity-at]))
+   encounter   :- Encounter]
+  "returns timestamp of the given entity's last activity (that is, the timestamp of the most
+   recent combat event that was regarding the named entity)"
+  (get-in encounter [:entities entity-name :last-activity-at]))
 
 (s/defn get-entity-alive-time :- Long
   "returns the number of milliseconds of the encounter that the entity was alive for"
@@ -112,38 +114,34 @@
   ; TODO
   entity)
 
-(s/defn finalize-entities :- RaidAnalysis
-  [data :- RaidAnalysis]
-  (update-active-encounter
-    data
-    (fn [encounter]
-      (-> encounter
-          (update-all-entities
-            #(assoc % :alive-duration (get-entity-alive-time % encounter)))
-          (update-all-entities
-            #(assoc %
-              :encounter-dps (Math/round ^double
-                                         (/ (:damage-out-total %)
-                                            (/ (:duration encounter)
-                                               1000)))
-              :alive-dps (Math/round ^double
+(s/defn finalize-entities :- Encounter
+  [encounter :- Encounter]
+  (-> encounter
+      (update-all-entities
+        #(assoc % :alive-duration (get-entity-alive-time % encounter)))
+      (update-all-entities
+        #(assoc %
+          :encounter-dps (Math/round ^double
                                      (/ (:damage-out-total %)
-                                        (/ (:alive-duration %)
-                                           1000)))))
-          (update-all-entities finalize-entity-auras (:ended-at encounter))))))
+                                        (/ (:duration encounter)
+                                           1000)))
+          :alive-dps (Math/round ^double
+                                 (/ (:damage-out-total %)
+                                    (/ (:alive-duration %)
+                                       1000)))))
+      (update-all-entities finalize-entity-auras (:ended-at encounter))))
 
-(s/defn calculate-encounter-stats :- RaidAnalysis
-  [data :- RaidAnalysis]
-  (-> data
-      (update-active-encounter
-        (fn [{:keys [started-at ended-at] :as encounter}]
-          (assoc encounter :duration (time-between started-at ended-at))))
-      (finalize-entities)))
+(s/defn calculate-encounter-stats :- Encounter
+  [encounter :- Encounter]
+  (let [{:keys [started-at ended-at]} encounter]
+    (-> encounter
+        (assoc :duration (time-between started-at ended-at))
+        (finalize-entities))))
 
 (s/defn count-currently-dead :- s/Num
-  [data        :- RaidAnalysis
+  [encounter   :- Encounter
    entity-name :- s/Str]
-  (if-let [entity (get-in data [:active-encounter :entities entity-name])]
+  (if-let [entity (get-in encounter [:entities entity-name])]
     (let [num-deaths     (count (:deaths entity))
           num-resurrects (count (:resurrections entity))]
       (- num-deaths num-resurrects))
@@ -207,27 +205,27 @@
         (update-in [:num-immune] #(if (= avoidance-method :immune) (inc %) %))
         (update-damage-averages))))
 
-(s/defn entity-takes-damage :- RaidAnalysis
-  [data                    :- RaidAnalysis
+(s/defn entity-takes-damage :- Encounter
+  [encounter               :- Encounter
    entity-name             :- s/Str
    from-entity-name        :- s/Str
    {:keys [skill damage damage-type]
     :as damage-properties} :- DamageProperties
    timestamp               :- Date]
-  (-> data
+  (-> encounter
       (update-entity-field entity-name [:damage-in-total] #(if damage (+ (or % 0) damage) %))
       (update-entity-field entity-name [:damage-in-totals damage-type] #(if damage (+ (or % 0) damage) %))
       (update-entity-field entity-name [:damage-in skill] #(add-from-damage-properties % damage-properties))
       (update-entity-field entity-name [:damage-in-by-entity from-entity-name skill] #(add-from-damage-properties % damage-properties))))
 
-(s/defn entity-deals-damage :- RaidAnalysis
-  [data                    :- RaidAnalysis
+(s/defn entity-deals-damage :- Encounter
+  [encounter               :- Encounter
    entity-name             :- s/Str
    to-entity-name          :- s/Str
    {:keys [skill damage damage-type]
     :as damage-properties} :- DamageProperties
    timestamp               :- Date]
-  (-> data
+  (-> encounter
       (update-entity-field entity-name [:damage-out-total] #(if damage (+ (or % 0) damage) %))
       (update-entity-field entity-name [:damage-out-totals damage-type] #(if damage (+ (or % 0) damage) %))
       (update-entity-field entity-name [:damage-out skill] #(add-from-damage-properties % damage-properties))
@@ -237,42 +235,42 @@
 ;;; main combat log entry processing entry points
 ;;;
 
-(s/defn process-source-to-target-damage :- RaidAnalysis
+(s/defn process-source-to-target-damage :- Encounter
   [source-name       :- s/Str
    target-name       :- s/Str
    damage-properties :- DamageProperties
    timestamp         :- Date
-   data              :- RaidAnalysis]
-  (-> data
+   encounter         :- Encounter]
+  (-> encounter
       (touch-entity source-name timestamp)
       (touch-entity target-name timestamp)
       (entity-takes-damage target-name source-name damage-properties timestamp)
       (entity-deals-damage source-name target-name damage-properties timestamp))
   )
 
-(s/defn process-entity-death :- RaidAnalysis
+(s/defn process-entity-death :- Encounter
   [entity-name :- s/Str
    timestamp   :- Date
-   data        :- RaidAnalysis]
-  (-> data
+   encounter   :- Encounter]
+  (-> encounter
       (touch-entity entity-name timestamp)
       (update-entity-field entity-name [:deaths] #(conj % {:timestamp timestamp}))
       (update-entity entity-name finalize-entity-auras timestamp)))
 
-(s/defn process-source-to-target-cast :- RaidAnalysis
+(s/defn process-source-to-target-cast :- Encounter
   [source-name :- s/Str
    target-name :- s/Str
    skill-name  :- s/Str
    timestamp   :- Date
-   data        :- RaidAnalysis]
-  data)
+   encounter   :- Encounter]
+  encounter)
 
-(s/defn process-entity-cast :- RaidAnalysis
+(s/defn process-entity-cast :- Encounter
   [entity-name :- s/Str
    skill-name  :- s/Str
    timestamp   :- Date
-   data        :- RaidAnalysis]
-  data)
+   encounter   :- Encounter]
+  encounter)
 
 (s/defn begin-encounter :- RaidAnalysis
   "sets up a new active encounter in the parsed data, returning the new parsed data set ready to use for
@@ -302,7 +300,7 @@
     (let [data (-> data
                    (update-active-encounter assoc :ended-at timestamp)
                    (update-active-encounter assoc :wipe-or-timeout? wipe-or-timeout?)
-                   (calculate-encounter-stats))]
+                   (update-active-encounter calculate-encounter-stats))]
       (-> data
           (assoc-in [:active-encounter] nil)
           (update-in [:encounters] #(conj %1 (:active-encounter data)))))))

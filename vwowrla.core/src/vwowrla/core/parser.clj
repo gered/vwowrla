@@ -5,6 +5,7 @@
     [clojure.tools.logging :refer [info error warn]]
     [clojure.java.io :as io]
     [schema.core :as s]
+    [vwowrla.core.encounters.core :refer [update-active-encounter]]
     [vwowrla.core.encounters.detection :refer [detect-encounter-end detect-encounter-triggered]]
     [vwowrla.core.encounters.analysis :refer [begin-encounter end-encounter active-encounter?]]
     [vwowrla.core.events.handlers :refer [handle-event]]
@@ -61,8 +62,8 @@
    ends the encounter.
    should only be called if an encounter is currently active in the current
    raid analysis data."
-  (let [data (handle-event event data)]
-    (if-let [encounter-end (detect-encounter-end event data)]
+  (let [data (update-active-encounter data #(handle-event event %))]
+    (if-let [encounter-end (detect-encounter-end event (:active-encounter data))]
       (end-encounter event encounter-end data)
       data)))
 
@@ -76,9 +77,9 @@
    should only be called if an encounter is NOT currently active in the
    current raid analysis data."
   (if-let [encounter-name (detect-encounter-triggered event data)]
-    (->> data
-         (begin-encounter encounter-name event)
-         (handle-event event))
+    (as-> data x
+         (begin-encounter encounter-name event x)
+         (update-active-encounter x #(handle-event event %)))
     data))
 
 (s/defn ^:private parse-log* :- (s/maybe RaidAnalysis)

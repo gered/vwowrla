@@ -94,12 +94,12 @@
    encounter was found to be over due to a raid wipe or other non-activity timeout, or nil if the
    active encounter is not over yet."
   [{:keys [^Date timestamp]} :- CombatEvent
-   data                      :- RaidAnalysis]
-  (let [trigger-entites (get-in data [:active-encounter :trigger-entities])]
+   encounter                 :- Encounter]
+  (let [trigger-entites (:trigger-entities encounter)]
     (cond
       (every?
         (fn [[entity-name {:keys [count must-kill-count]}]]
-          (let [count-dead (count-currently-dead data entity-name)]
+          (let [count-dead (count-currently-dead encounter entity-name)]
             (>= count-dead (or must-kill-count count))))
         trigger-entites)
       :killed
@@ -111,7 +111,7 @@
           ;       and there have been no combat log lines yet for one or more of the trigger entities.
           ;       should we have a minimum encounter length time? something like 15-30 seconds? that also feels hacky...
           (>= (- (.getTime timestamp)
-                 (.getTime (or (get-entity-last-activity entity-name data)
+                 (.getTime (or (get-entity-last-activity entity-name encounter)
                                timestamp)))
               wipe-or-timeout-period))
         trigger-entites)

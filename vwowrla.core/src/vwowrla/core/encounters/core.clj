@@ -69,21 +69,22 @@
    f & args]
   (update-active-encounter data #(update-all-entities % f args)))
 
-(s/defn update-entity :- RaidAnalysis
   "updates an entity in the full parsed data's active encounter using function f
    which takes the current entity and any supplied args, returning the new entity
    which is 'updated' in the active encounter. returns the updated full parsed data."
-  [data        :- RaidAnalysis
+(s/defn update-entity :- Encounter
+  [encounter   :- Encounter
    entity-name :- s/Str
    f & args]
-  (apply update-in data [:active-encounter :entities entity-name] f args))
+  (apply update-in encounter [:entities entity-name] f args))
 
-(s/defn update-entity-field :- RaidAnalysis
   "updates a specific field within an entity pointed to by ks in the full parsed
    data's active encounter using function f which takes the current entity and any
    supplied args, returning the new entity which is 'updated' in the active encounter.
    returns the updated full parsed data."
-  [data        :- RaidAnalysis
+(s/defn update-entity-field :- Encounter
+  [encounter   :- Encounter
    entity-name :- s/Str
    ks f & args]
-  (apply update-in data (concat [:active-encounter :entities entity-name] ks) f args))
+  (let [ks (concat [:entities entity-name] ks)]
+    (apply update-in encounter ks f args)))
