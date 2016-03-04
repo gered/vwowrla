@@ -55,9 +55,9 @@
        (boolean)))
 
 (s/defn detect-encounter-triggered :- (s/maybe s/Str)
-  "determines if the parsed combat log line is for an event involving any specific encounter entities which
-   should cause an encounter to begin, returning the name of the encounter if it should begin, or nil if no
-   encounter begin was detected"
+  "determines if the given combat event should trigger the beginning of an encounter or not.
+   returns the name of the encounter that should begin or nil if no encounter trigger was
+   detected"
   [{:keys [target-name source-name damage aura-name type skill] :as event} :- CombatEvent
    data :- RaidAnalysis]
   (if-let [encounter-name (or (find-defined-encounter-name target-name)
@@ -89,10 +89,11 @@
           encounter-name)))))
 
 (s/defn detect-encounter-end :- (s/maybe s/Keyword)
-  "determines if the currently active encounter should end based on the active encounter parsed data.
-   returns :killed if the encounter should end due to a successful kill, :wipe-or-timeout if the
-   encounter was found to be over due to a raid wipe or other non-activity timeout, or nil if the
-   active encounter is not over yet."
+  "determines if the encounter should end based on the given combat event and the current state
+   of the encounter.
+   returns :killed for a successful encounter end (all encounter entities killed).
+   returns :wipe-or-timeout if there was a wipe or other encounter entity activity timeout.
+   returns nil if the encounter is not over yet."
   [{:keys [^Date timestamp]} :- CombatEvent
    encounter                 :- Encounter]
   (let [trigger-entites (:trigger-entities encounter)]

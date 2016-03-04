@@ -13,7 +13,7 @@
 
 (s/defn find-defined-encounter-name :- (s/maybe s/Str)
   "returns the name of a defined encounter which includes the given entity in it's
-   list of trigger entities. returns nil if there is no encounter which includes the
+   list of encounter entities. returns nil if there is no encounter which includes the
    given entity"
   [entity-name :- (s/maybe s/Str)]
   (->> defined-encounters
@@ -42,16 +42,16 @@
 
 (s/defn update-active-encounter :- RaidAnalysis
   "updates the active encounter using function f which will take the current active
-   encounter and any supplied args, returning a new active encounter which is
-   'updated' in the original full parsed data and then finally returned."
+   encounter and any supplied args. f should return a new encounter.
+   returns the log analysis data with the modified active encounter."
   [data :- RaidAnalysis
    f & args]
   (apply update-in data [:active-encounter] f args))
 
 (s/defn update-all-entities :- Encounter
   "updates all entities in the encounter using function f which takes the current
-   entity and any supplied args, returning a new entity which is 'updated' in the
-   original encounter. returns the encounter with the modified entity data."
+   entity and any supplied args. f should return a new/updated entity.
+   returns the encounter with the modified entity data."
   [encounter :- Encounter
    f & args]
   (reduce
@@ -69,20 +69,21 @@
    f & args]
   (update-active-encounter data #(update-all-entities % f args)))
 
-  "updates an entity in the full parsed data's active encounter using function f
-   which takes the current entity and any supplied args, returning the new entity
-   which is 'updated' in the active encounter. returns the updated full parsed data."
 (s/defn update-entity :- Encounter
+  "updates an entity (specified by name) in the encounter using function f which
+   takes the current entity (or nil if no such entity exists in the encounter) and
+   any supplied args. f should return a new/updated entity.
+   returns the encounter with the updated entity."
   [encounter   :- Encounter
    entity-name :- s/Str
    f & args]
   (apply update-in encounter [:entities entity-name] f args))
 
-  "updates a specific field within an entity pointed to by ks in the full parsed
-   data's active encounter using function f which takes the current entity and any
-   supplied args, returning the new entity which is 'updated' in the active encounter.
-   returns the updated full parsed data."
 (s/defn update-entity-field :- Encounter
+  "updates a specific field (pointed to by ks) within an entity (specified by name)
+   in the encounter using function f which takes the value of the entity field
+   specified and any supplied args. f should return the new value for that field.
+   returns the encounter with the updated entity."
   [encounter   :- Encounter
    entity-name :- s/Str
    ks f & args]

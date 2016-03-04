@@ -10,6 +10,7 @@
     vwowrla.core.utils))
 
 (s/defn active-encounter? :- s/Bool
+  "returns true if the log analysis data contains an active encounter"
   [data :- RaidAnalysis]
   (not (nil? (:active-encounter data))))
 
@@ -51,7 +52,7 @@
   (get-in encounter [:entities entity-name :last-activity-at]))
 
 (s/defn get-entity-alive-time :- Long
-  "returns the number of milliseconds of the encounter that the entity was alive for"
+  "returns the total time that the given entity was alive for in the encounter (time in milliseconds)"
   [{:keys [deaths resurrections]}              :- Entity
    {:keys [started-at ended-at] :as encounter} :- Encounter]
   (if (and (= 0 (count deaths))
