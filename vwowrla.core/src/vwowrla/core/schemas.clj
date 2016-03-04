@@ -74,7 +74,14 @@
 
 ; TODO
 (def Encounter
-  {s/Any s/Any})
+  {:name                              s/Str
+   :started-at                        java.util.Date
+   :entities                          {s/Str Entity}
+   :skills                            {s/Str s/Any}
+   :trigger-entities                  {s/Str DefinedEncounterEntity}
+   (s/optional-key :ended-at)         java.util.Date
+   (s/optional-key :wipe-or-timeout?) s/Bool
+   (s/optional-key :duration)         s/Num})
 
 ; TODO
 (def RaidAnalysis
