@@ -58,16 +58,17 @@
   (if (and (= 0 (count deaths))
            (= 0 (count resurrections)))
     (:duration encounter)
-    (let [segments (as-> (concat
-                           (map (fn [death] {:status :dead :at (:timestamp death)}) deaths)
-                           (map (fn [resurrection] {:status :alive :at (:timestamp resurrection)}) resurrections)
-                           [{:status :end :at ended-at}]) x
-                         (remove empty? x)
-                         (sort-by :at x))]
+    (let [segments (->> (concat
+                          (map (fn [death] {:status :dead :at (:timestamp death)}) deaths)
+                          (map (fn [resurrection] {:status :alive :at (:timestamp resurrection)}) resurrections)
+                          [{:status :end :at ended-at}])
+                        (remove empty?)
+                        (sort-by :at))]
       (reduce
         (fn [{:keys [total current-status from] :as result} {:keys [status at]}]
           (cond
-            ; is the first state change we find a resurrect? (e.g. they were dead when the fight began)
+            ; is the first state change we find a resurrect? (that is, they were dead when the fight began)
+            ; NOTE: technically this could also happen if for some reason the combat log missed a previous death event
             (and (nil? current-status)
                  (= :alive status))
             (assoc result
@@ -82,7 +83,7 @@
               :from at
               :total (+ total (time-between from at)))
 
-            ; resurrected after a death
+            ; resurrected after a death during the encounter
             (and (= :dead current-status)
                  (= :alive status))
             (assoc result
@@ -94,6 +95,8 @@
             ; available to us. so, we just tack on the time since the last death since at least one of the entities
             ; was alive for that entire time period. in this way, the "entity alive time" for the entity with this
             ; name will just be a counter of "at least one entity with this name was alive"
+            ; NOTE: technically this "double death" thing could also happen for entities for which there really is
+            ;       only one if for some reason the combat log missed a previous resurrect event
             (and (= :dead current-status)
                  (= :dead status))
             (assoc result
