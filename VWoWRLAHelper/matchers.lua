@@ -107,7 +107,8 @@ vwowrla_combat_log_patterns = {
 	{
 		event = "skill-avoided-by-target",
 		pattern = {
-			"^(.+) resists your (.+)%.$"
+			"^(.+) resists your (.+)%.$",
+			"^(.+) is immune to your (.+)%.$"
 		},
 		fn = function(matches)
 			return {
@@ -145,7 +146,8 @@ vwowrla_combat_log_patterns = {
 			"^(.-)'s (.+) was evaded by (.+)%.$",
 			"^(.-)'s (.+) is absorbed by (.+)%.$",
 			"^(.-)'s (.+) was resisted by (.+)%.$",
-			"^(.-)'s (.+) fails%. (.+) is immune%.$"
+			"^(.-)'s (.+) fails%. (.+) is immune%.$",
+			"^(.+) is immune to (.-)'s (.+)%.$"
 		},
 		fn = function(matches)
 			return {
