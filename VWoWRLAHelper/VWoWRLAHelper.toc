@@ -1,0 +1,7 @@
+## Interface:11200
+## Title: Vanilla World of Warcraft Raid Log Analysis Helper Addon
+## Notes: Provides support for taking buff/debuff snapshots of the entire raid at the beginning of raid encounters, to supplement the data analysis done on raid combat logs.
+## OptionalDeps:
+## Dependencies:
+## SavedVariables: vwowrla_raid_snapshots
+VWoWRLAHelper.xml
