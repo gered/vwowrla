@@ -111,8 +111,13 @@
     (cond
       (every?
         (fn [[entity-name {:keys [count must-kill-count]}]]
-          (let [count-dead (count-currently-dead encounter entity-name)]
-            (>= count-dead (or must-kill-count count))))
+          ; if there is no entity count (or kill count) specified then there is no specific
+          ; kill requirement of this entity for the encounter to end
+          (if (or (not (nil? count))
+                  (not (nil? must-kill-count)))
+            (let [count-dead (count-currently-dead encounter entity-name)]
+              (>= count-dead (or must-kill-count count)))
+            true))
         trigger-entites)
       :killed
 
