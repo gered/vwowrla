@@ -1,4 +1,7 @@
-{"Lucifron"                 {:entities {"Lucifron"             {:count 1}
+{
+ ;; MOLTEN CORE
+
+ "Lucifron"                 {:entities {"Lucifron"             {:count 1}
                                         "Flamewaker Protector" {:count 2}}}
 
  "Magmadar"                 {:entities {"Magmadar" {:count 1}}}
@@ -30,9 +33,113 @@
 
  "Ragnaros"                 {:entities           {"Ragnaros"     {:count                    1
                                                                   :ignore-interactions-with ["Majordomo Executus"]}
-                                                  "Son of Flame" {:count           8
-                                                                  :must-kill-count 0}}
+                                                  "Son of Flame" {:cannot-trigger? true}}
                              :trigger-on-damage? true
                              :trigger-on-debuff? true}
 
- "Onyxia"                   {:entities {"Onyxia" {:count 1}}}}
+
+
+ ;; ONYXIA
+
+ "Onyxia"                   {:entities {"Onyxia" {:count 1}}}
+
+
+
+ ;; BLACKWING LAIR
+
+ "Razorgore the Untamed"    {:entities {"Razorgore the Untamed"   {:count 1}
+                                        "Grethok the Controller"  {:count 1}
+                                        "Blackwing Guardsman"     {:count 2}
+                                        "Blackwing Legionnaire"   {:cannot-trigger? true}
+                                        "Blackwing Mage"          {:cannot-trigger? true}
+                                        "Death Talon Dragonspawn" {:cannot-trigger? true}}}
+
+ "Vaelastrasz the Corrupt"  {:entities {"Vaelastrasz the Corrupt" {:count 1}}}
+
+ "Broodlord Lashlayer"      {:entities {"Broodlord Lashlayer" {:count 1}}}
+
+ "Firemaw"                  {:entities {"Firemaw" {:count 1}}}
+
+ "Ebonroc"                  {:entities {"Ebonroc" {:count 1}}}
+
+ "Flamegor"                 {:entities {"Flamegor" {:count 1}}}
+
+ "Chromaggus"               {:entities {"Chromaggus" {:count 1}}}
+
+ "Nefarian"                 {:entities {"Nefarian"             {:count 1}
+                                        "Lord Victor Nefarius" {:count           1
+                                                                :must-kill-count 0}
+                                        "Black Drakonid"       {:cannot-trigger? true}
+                                        "Blue Drakonid"        {:cannot-trigger? true}
+                                        "Bronze Drakonid"      {:cannot-trigger? true}
+                                        "Chromatic Drakonid"   {:cannot-trigger? true}
+                                        "Green Drakonid"       {:cannot-trigger? true}
+                                        "Red Drakonid"         {:cannot-trigger? true}
+                                        "Bone Construct"       {:cannot-trigger? true}}}
+
+
+ ;; ZUL'GURUB
+
+ "High Priestess Jeklik"    {:entities {"High Priestess Jeklik" {:count 1}}}
+
+ "High Priest Venoxis"      {:entities {"High Priest Venoxis" {:count 1}
+                                        "Razzashi Cobra"      {:count 4}}}
+
+ "High Priestess Mar'li"    {:entities {"High Priestess Mar'li" {:count 1}
+                                        "Witherbark Speaker"    {:count 1}
+                                        "Spawn of Mar'li"       {:cannot-trigger? true}
+                                        "Spider"                {:cannot-trigger? true}}}
+
+ "Bloodlord Mandokir"       {:entities {"Bloodlord Mandokir" {:count 1}
+                                        "Ohgan"              {}}}
+
+ "High Priest Thekal"       {:entities {"High Priest Thekal" {:count 2}
+                                        "Zealot Zath"        {:count 1}
+                                        "Zealot Lor'Khan"    {:count 1}
+                                        "Zulian Guardian"    {:cannot-trigger? true}
+                                        "Zulian Tiger"       {}}}
+
+ "High Priestess Arlokk"    {:entities {"High Priestess Arlokk" {:count 1}
+                                        "Zulian Prowler"        {:cannot-trigger? true}}}
+
+ "Jin'do the Hexxer"        {:entities {"Jin'do the Hexxer"     {:count 1}
+                                        "Brain Wash Totem"      {:cannot-trigger? true}
+                                        "Powerful Healing Ward" {:cannot-trigger? true}
+                                        "Shade of Jin'do"       {}
+                                        "Sacrificed Troll"      {:cannot-trigger? true}}}
+
+ "Hakkar"                   {:entities {"Hakkar" {:count 1}}}
+
+ "Gahz'ranka"               {:entities {"Gahz'ranka" {:count 1}}}
+
+ "Hazza'rah"                {:entities {"Hazza'rah"          {:count 1}
+                                        "Nightmare Illusion" {:cannot-trigger? true}}}
+
+ "Gri'lek"                  {:entities {"Gri'lek" {:count 1}}}
+
+ "Renataki"                 {:entities {"Renataki" {:count 1}}}
+
+ "Wushoolay"                {:entities {"Wushoolay" {:count 1}}}
+
+
+
+ ;; WORLD BOSSES
+
+ "Azuregos"                 {:entities {"Azuregos" {:count 1}}}
+
+ "Lord Kazzak"              {:entities {"Lord Kazzak" {:count 1}}}
+
+
+
+ ;; DRAGONS OF NIGHTMARE
+
+ "Lethon"                   {:entities {"Lethon" {:count 1}}}
+
+ "Emeriss"                  {:entities {"Emeriss" {:count 1}}}
+
+ "Ysondre"                  {:entities {"Ysondre" {:count 1}}}
+
+ "Taerar"                   {:entities {"Taerar"          {:count 1}
+                                        "Shade of Taerar" {:cannot-trigger? true}}}
+
+ }
