@@ -19,7 +19,10 @@
   (->> defined-encounters
        (filter (fn [[_ {:keys [entities]}]]
                  (->> entities
-                      (filter #(= (first %) entity-name))
+                      (filter
+                        (fn [[name {:keys [cannot-trigger?]}]]
+                          (and (= entity-name name)
+                               (not cannot-trigger?))))
                       (first))))
        (ffirst)))
 
