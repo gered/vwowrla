@@ -97,7 +97,9 @@
                                         "Zealot Zath"        {:count 1}
                                         "Zealot Lor'Khan"    {:count 1}
                                         "Zulian Guardian"    {:cannot-trigger? true}
-                                        "Zulian Tiger"       {}}}
+                                        ; technically these should be able to trigger the encounter start,
+                                        ; but enemies with the same name are also located throughout ZG
+                                        "Zulian Tiger"       {:cannot-trigger? true}}}
 
  "High Priestess Arlokk"    {:entities {"High Priestess Arlokk" {:count 1}
                                         "Zulian Prowler"        {:cannot-trigger? true}}}
