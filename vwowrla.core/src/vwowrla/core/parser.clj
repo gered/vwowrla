@@ -82,6 +82,13 @@
          (update-active-encounter x #(handle-event event %)))
     data))
 
+(s/defn ^:private handle-unknown-event :- RaidAnalysis
+  [event :- CombatEvent
+   data  :- RaidAnalysis]
+  "special handling for unknown combat events."
+  (warn (str "Unknown event encountered during log file parse: \"" (:line event) "\". Skipping event."))
+  (assoc data :unknown-events-count (inc (or (:unknown-events-count data) 0))))
+
 (s/defn ^:private parse-log* :- (s/maybe RaidAnalysis)
   [f
    options :- ParserOptions]
@@ -91,9 +98,11 @@
         (fn [data ^String line]
           (try
             (let [event (parse-line line options)]
-              (if (active-encounter? data)
-                (active-encounter-processing event data)
-                (out-of-encounter-processing event data)))
+              (if (= :unknown (:event event))
+                (handle-unknown-event event data)
+                (if (active-encounter? data)
+                  (active-encounter-processing event data)
+                  (out-of-encounter-processing event data))))
             (catch Exception ex
               (throw (ex-info "Parser error" {:line line} ex)))))
         {:encounters       []
