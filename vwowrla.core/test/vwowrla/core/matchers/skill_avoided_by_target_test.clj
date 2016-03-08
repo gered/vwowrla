@@ -505,6 +505,20 @@
           :skill            "Unit Test's Attack"
           :avoidance-method :absorb})))
 
+(deftest skill-absorb-2-self
+  (is (valid-matcher? (get-matcher regex-matchers :skill-absorb-2-self)))
+
+  (is (= (parse-line "2/7 22:35:41.365  You absorb your Poisonous Blood." options)
+         {:id               :skill-absorb-2-self
+          :logfmt           :skill-absorb-2-self
+          :event            :skill-avoided-by-target
+          :line             "2/7 22:35:41.365  You absorb your Poisonous Blood."
+          :timestamp        (parse-log-timestamp "2/7 22:35:41.365" options)
+          :target-name      owner-char-name
+          :source-name      owner-char-name
+          :skill            "Poisonous Blood"
+          :avoidance-method :absorb})))
+
 (deftest skill-resist-2
   (is (valid-matcher? (get-matcher regex-matchers :skill-resist-2)))
 

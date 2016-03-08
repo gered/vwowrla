@@ -108,7 +108,8 @@ vwowrla_combat_log_patterns = {
 		event = "skill-avoided-by-target",
 		pattern = {
 			"^(.+) resists your (.+)%.$",
-			"^(.+) is immune to your (.+)%.$"
+			"^(.+) is immune to your (.+)%.$",
+			"^(.+) absorbs? your (.+)%.$"
 		},
 		fn = function(matches)
 			return {

@@ -296,6 +296,16 @@
               :skill            %3
               :avoidance-method :absorb)}
 
+   {:regex  #"^(.+?) (?:absorb|absorbs) your (.+)\.$"
+    :id     :skill-absorb-2-self
+    :logfmt :skill-absorb-2-self
+    :event  :skill-avoided-by-target
+    :args   #(hash-map
+              :target-name      %1
+              :skill            %2
+              :source-name      "you"
+              :avoidance-method :absorb)}
+
    ; i don't think target is ever "you" for this one
    {:regex  #"^(.+?)'s (.+) was resisted by (.+)\.$"
     :id     :skill-resist-2
