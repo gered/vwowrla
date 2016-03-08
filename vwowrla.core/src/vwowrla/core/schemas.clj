@@ -87,7 +87,7 @@
 (def RaidAnalysis
   {:encounters                            [Encounter]
    :active-encounter                      (s/maybe Encounter)
-   (s/optional-key :unknown-events-count) (s/Num)})
+   (s/optional-key :unknown-events-count) s/Num})
 
 ; TODO
 (def DamageProperties
