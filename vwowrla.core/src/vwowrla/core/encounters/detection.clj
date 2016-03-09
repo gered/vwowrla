@@ -76,7 +76,8 @@
              (not (contained-in? skill non-combat-starting-skills)))
       ; now look at individual encounter-specific criteria for whether this combat event
       ; can trigger the encounter or not
-      (let [encounter (get defined-encounters encounter-name)]
+      (let [encounter (get defined-encounters encounter-name)
+            triggers  (:triggers encounter)]
         (cond
           (ignored-encounter-entity-interaction-event? encounter event)
           nil
@@ -86,15 +87,14 @@
 
           ; if ANY of these are defined, then their criteria MUST pass to
           ; trigger an encounter
-          (or (:trigger-on-damage? encounter)
-              (:trigger-on-aura? encounter)
-              (:trigger-on-buff? encounter)
-              (:trigger-on-debuff? encounter))
+          triggers
           (cond
-            (and (:trigger-on-damage? encounter) damage)           encounter-name
-            (and (:trigger-on-aura? encounter) aura-name)          encounter-name
-            (and (:trigger-on-buff? encounter) (= :buff type))     encounter-name
-            (and (:trigger-on-debuff? encounter) (= :debuff type)) encounter-name)
+            (and (:on-damage? triggers) damage)           encounter-name
+            (and (:on-aura? triggers) aura-name)          encounter-name
+            (and (:on-buff? triggers) (= :buff type))     encounter-name
+            (and (:on-debuff? triggers) (= :debuff type)) encounter-name
+            ; this is also default behaviour if triggers aren't specified
+            (:on-anything? triggers)                      encounter-name)
 
           :else
           encounter-name)))))
