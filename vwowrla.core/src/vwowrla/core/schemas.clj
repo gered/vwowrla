@@ -24,10 +24,10 @@
    (s/optional-key :windows?) s/Bool})
 
 (def DefinedEncounterEntity
-  {:count                                     s/Num
-   (s/optional-key :must-kill-count)          s/Num
+  {(s/optional-key :count)                    s/Num
    (s/optional-key :ignore-interactions-with) [s/Str]
-   (s/optional-key :ignore-skills)            [s/Str]})
+   (s/optional-key :ignore-skills)            [s/Str]
+   (s/optional-key :cannot-trigger?)          s/Bool})
 
 (def DefinedEncounter
   {:entities                            {s/Str DefinedEncounterEntity}

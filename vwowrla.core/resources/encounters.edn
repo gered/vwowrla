@@ -20,11 +20,9 @@
                                         "Flamewaker Priest"  {:count 4}}}
 
  "Golemagg the Incinerator" {:entities {"Golemagg the Incinerator" {:count 1}
-                                        "Core Rager"               {:count 2}}}
+                                        "Core Rager"               {}}}
 
- "Majordomo Executus"       {:entities           {"Majordomo Executus" {:count                    1
-                                                                        :must-kill-count          0
-                                                                        :ignore-interactions-with ["Ragnaros"]
+ "Majordomo Executus"       {:entities           {"Majordomo Executus" {:ignore-interactions-with ["Ragnaros"]
                                                                         :ignore-skills            ["Summon Ragnaros"]}
                                                   "Flamewaker Healer"  {:count 4}
                                                   "Flamewaker Elite"   {:count 4}}
@@ -67,8 +65,7 @@
  "Chromaggus"               {:entities {"Chromaggus" {:count 1}}}
 
  "Nefarian"                 {:entities {"Nefarian"             {:count 1}
-                                        "Lord Victor Nefarius" {:count           1
-                                                                :must-kill-count 0}
+                                        "Lord Victor Nefarius" {}
                                         "Black Drakonid"       {:cannot-trigger? true}
                                         "Blue Drakonid"        {:cannot-trigger? true}
                                         "Bronze Drakonid"      {:cannot-trigger? true}
