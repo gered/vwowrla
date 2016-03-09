@@ -187,6 +187,61 @@
 
 
 
+ ;; NAXXRAMAS
+ ; TODO: verify these
+
+ "Patchwerk"                {:entities {"Patchwerk" {:count 1}}}
+
+ "Grobbulus"                {:entities {"Grobbulus"    {:count 1}
+                                        "Sewage Slime" {:cannot-trigger? true}}}
+
+ "Gluth"                    {:entities {"Gluth" {:count 1}}}
+
+ "Thaddius"                 {:entities {"Thaddius" {:count 1}
+                                        "Feugen"   {:count 1}
+                                        "Stalagg"  {:count 1}}}
+
+ "Noth the Plaguebringer"   {:entities {"Noth the Plaguebringer" {:count 1}}}
+
+ "Heigan the Unclean"       {:entities {"Heigan the Unclean" {:count 1}
+                                        "Mutated Grub"       {:cannot-trigger? true}
+                                        "Eye Stalk"          {:cannot-trigger? true}}}
+
+ "Loatheb"                  {:entities {"Loatheb" {:count 1}}}
+
+ "Anub'Rekhan"              {:entities {"Anub'Rekhan" {:count 1}
+                                        "Crypt Guard" {:count 2}}}
+
+ "Grand Widow Faerlina"     {:entities {"Grand Widow Faerlina" {:count 1}
+                                        "Naxxramas Worshipper" {:count 4}
+                                        "Naxxramas Follower"   {:count 2}}}
+
+ "Maexxna"                  {:entities {"Maexxna" {:count 1}}}
+
+ "Instructor Razuvious"     {:entities {"Instructor Razuvious"    {:count 1}
+                                        "Death Knight Understudy" {:count 4}}}
+
+ "Gothik the Harvester"     {:entities {"Gothik the Harvester"     {:count 1}
+                                        "Unrelenting Trainee"      {:cannot-trigger? true}
+                                        "Unrelenting Death Knight" {:cannot-trigger? true}
+                                        "Unrelenting Rider"        {:cannot-trigger? true}
+                                        "Spectral Trainee"         {:cannot-trigger? true}
+                                        "Spectral Death Knight"    {:cannot-trigger? true}
+                                        "Spectral Rider"           {:cannot-trigger? true}
+                                        "Spectral Horse"           {:cannot-trigger? true}}}
+
+ "The Four Horsemen"        {:entities {"Highlord Mograine" {:count 1}
+                                        "Thane Korth'azz"   {:count 1}
+                                        "Lady Blaumeux"     {:count 1}
+                                        "Sir Zeliek"        {:count 1}}}
+
+ "Sapphiron"                {:entities {"Sapphiron" {:count 1}}}
+
+ "Kel'Thuzad"               {:entities {"Kel'Thuzad"           {:count 1}
+                                        "Guardian of Icecrown" {:cannot-trigger? true}}}
+
+
+
  ;; WORLD BOSSES
 
  "Azuregos"                 {:entities {"Azuregos" {:count 1}}}
