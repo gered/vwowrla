@@ -125,6 +125,68 @@
 
 
 
+ ;; RUINS OF AHN'QIRAJ (AQ20)
+ ; TODO: verify these
+
+ "Kurinnaxx"                {:entities {"Kurinnaxx" {:count 1}}}
+
+ "General Rajaxx"           {:entities {"General Rajaxx"     {:count 1}
+                                        "Captain Qeez"       {}
+                                        "Captain Drenn"      {}
+                                        "Captain Xurrem"     {}
+                                        "Major Yeggeth"      {}
+                                        "Major Pakkon"       {}
+                                        "Colonel Zerran"     {}
+                                        "Swarmguard Needler" {:cannot-trigger? true}
+                                        "Qiraji Warrior"     {:cannot-trigger? true}}}
+
+ "Moam"                     {:entities {"Moam" {:count 1}}}
+
+ "Buru the Gorger"          {:entities {"Buru the Gorger" {:count 1}}}
+
+ "Ayamiss the Hunter"       {:entities {"Ayamiss the Hunter" {:count 1}}}
+
+ "Ossirian the Unscarred"   {:entities {"Ossirian the Unscarred" {:count 1}}}
+
+
+
+ ;; TEMPLE OF AHN'QIRAJ (AQ40)
+ ; TODO: verify these
+
+ ; this is almost certainly wrong, as he splits into 2 every 25% (do the splits have the same name?)
+ "The Prophet Skeram"       {:entities {"The Prophet Skeram" {:count 1}}}
+
+ "Silithid Royalty"         {:entities {"Lord Kri"      {:count 1}
+                                        "Princess Yauj" {:count 1}
+                                        "Vem"           {:count 1}}}
+
+ "Battleguard Sartura"      {:entities {"Battleguard Sartura"   {:count 1}
+                                        "Sartura's Royal Guard" {:count 3}}}
+
+ "Fankriss the Unyielding"  {:entities {"Fankriss the Unyielding" {:count 1}
+                                        "Spawn of Fankriss"       {}
+                                        "Vekniss Hatchling"       {:cannot-trigger? true}}}
+
+ "Viscidus"                 {:entities {"Viscidus" {:count 1}}}
+
+ "Princess Huhuran"         {:entities {"Princess Huhuran" {:count 1}}}
+
+ "Twin Emperors"            {:entities {"Emperor Vek'lor"    {:count 1}
+                                        "Emperor Vek'nilash" {:count 1}
+                                        "Qiraji Scarab"      {:cannot-trigger? true}
+                                        "Qiraji Scorpion"    {:cannot-trigger? true}}}
+
+ "Ouro"                     {:entities {"Ouro" {:count 1}}}
+
+ "C'Thun"                   {:entities {"C'Thun"              {:count 1}
+                                        "Claw Tentacle"       {}
+                                        "Eye Tentacle"        {}
+                                        "Giant Claw Tentacle" {:cannot-trigger? true}
+                                        "Giant Eye Tentacle"  {:cannot-trigger? true}
+                                        "Flesh Tentacle"      {:cannot-trigger? true}}}
+
+
+
  ;; WORLD BOSSES
 
  "Azuregos"                 {:entities {"Azuregos" {:count 1}}}
