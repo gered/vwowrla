@@ -143,14 +143,16 @@
       (- num-deaths num-resurrects))
     0))
 
-(s/defn update-damage-averages :- SkillStatistics
-  [{:keys [num-hits total-hit-damage total-crit-damage num-crits] :as totals} :- SkillStatistics]
+;; damage
+
+(s/defn update-damage-averages :- DamageStatistics
+  [{:keys [num-hits total-hit-damage total-crit-damage num-crits] :as totals} :- DamageStatistics]
   (-> totals
       (update-in [:average-hit] #(if (> num-hits 0) (int (/ total-hit-damage num-hits)) %))
       (update-in [:average-crit] #(if (> num-crits 0) (int (/ total-crit-damage num-crits)) %))))
 
-(s/defn update-damage-statistics :- SkillStatistics
-  [totals :- (s/maybe SkillStatistics)
+(s/defn update-damage-statistics :- DamageStatistics
+  [totals :- (s/maybe DamageStatistics)
    {:keys [damage hit-type crit? partial-absorb partial-resist partial-block avoidance-method]} :- DamageProperties]
   (let [damage (or damage 0)]
     (-> (or totals {:damage             0
@@ -231,6 +233,71 @@
          (update-in [:damage in-or-out skill] #(update-damage-statistics % damage-properties))
          (update-in [:damage k] #(update-damage-statistics % damage-properties)))))
 
+;; healing
+
+(s/defn update-healing-averages :- HealingStatistics
+  [{:keys [num-normal num-crits total-normal-amount total-crit-amount] :as totals} :- HealingStatistics]
+  (-> totals
+      (update-in [:average-normal] #(if (> num-normal 0) (int (/ total-normal-amount num-normal)) %))
+      (update-in [:average-crit] #(if (> num-crits 0) (int (/ total-crit-amount num-crits)) %))))
+
+(s/defn update-healing-statistics :- HealingStatistics
+  [totals :- (s/maybe HealingStatistics)
+   {:keys [amount crit?]} :- HealProperties]
+  (let [amount (or amount 0)]
+    (-> (or totals {:amount              0
+                    :max-normal          0
+                    :min-normal          0
+                    :total-normal-amount 0
+                    :average-normal      0
+                    :max-crit            0
+                    :min-crit            0
+                    :total-crit-amount   0
+                    :average-crit        0
+                    :num-total-heals     0
+                    :num-normal          0
+                    :num-crits           0})
+        (update-in [:amount] #(+ % amount))
+        (update-in [:max-normal] #(if-not crit? (max % amount) %))
+        (update-in [:min-normal] #(if-not crit? (if (> amount 0) (if (= % 0) amount (min % amount)) %) %))
+        (update-in [:total-normal-amount] #(if-not crit? (+ % amount) %))
+        (update-in [:max-crit] #(if crit? (max % amount) %))
+        (update-in [:min-crit] #(if crit? (if (> amount 0) (if (= % 0) amount (min % amount)) %) %))
+        (update-in [:total-crit-amount] #(if crit? (+ % amount) %))
+        (update-in [:num-total-heals] #(inc %))
+        (update-in [:num-normal] #(if-not crit? (inc %) %))
+        (update-in [:num-crits] #(if crit? (inc %) %))
+        (update-healing-averages))))
+
+(s/defn update-entity-healing-stats :- Encounter
+  [encounter             :- Encounter
+   in-or-out             :- s/Keyword
+   entity-name           :- s/Str
+   {:keys [skill amount]
+    :as heal-properties} :- HealProperties
+   timestamp             :- Date]
+  (-> encounter
+      (update-entity-field entity-name [:healing in-or-out :total] #(if amount (+ (or % 0) amount) %))
+      (update-entity-field entity-name [:healing in-or-out skill] #(update-healing-statistics % heal-properties))))
+
+(s/defn update-healing-stats :- Encounter
+  [encounter             :- Encounter
+   source-entity-name    :- s/Str
+   target-entity-name    :- s/Str
+   {:keys [skill amount]
+    :as heal-properties} :- HealProperties
+   timestamp             :- Date]
+  (let [k    {:source source-entity-name
+              :target target-entity-name
+              :skill  skill}
+        type (if (enemy-entity? target-entity-name) :hostile :friendly)]
+    (-> encounter
+        (update-in [:healing type :total] #(if amount (+ (or % 0) amount) %))
+        (update-in [:healing type skill] #(update-healing-statistics % heal-properties))
+        (update-in [:healing k] #(update-healing-statistics % heal-properties)))))
+
+;; --
+
 (s/defn update-skill-use-count :- Encounter
   [encounter          :- Encounter
    source-entity-name :- s/Str
@@ -245,12 +312,12 @@
 ;;;
 
 (s/defn process-source-to-target-damage :- Encounter
-  [source-name       :- s/Str
-   target-name       :- s/Str
+  [source-name             :- s/Str
+   target-name             :- s/Str
    {:keys [skill]
     :as damage-properties} :- DamageProperties
-   timestamp         :- Date
-   encounter         :- Encounter]
+   timestamp               :- Date
+   encounter               :- Encounter]
   (-> encounter
       (touch-entity source-name timestamp)
       (touch-entity target-name timestamp)
@@ -260,13 +327,19 @@
       (update-entity-damage-stats :out source-name damage-properties timestamp)))
 
 (s/defn process-source-to-target-healing :- Encounter
-  [source-name :- s/Str
-   target-name :- s/Str
+  [source-name           :- s/Str
+   target-name           :- s/Str
    {:keys [skill]
     :as heal-properties} :- HealProperties
-   timestamp   :- Date
-   encounter   :- Encounter]
-  encounter)
+   timestamp             :- Date
+   encounter             :- Encounter]
+  (-> encounter
+      (touch-entity source-name timestamp)
+      (touch-entity target-name timestamp)
+      (update-skill-use-count source-name target-name skill timestamp)
+      (update-healing-stats source-name target-name heal-properties timestamp)
+      (update-entity-healing-stats :in target-name heal-properties timestamp)
+      (update-entity-healing-stats :out source-name heal-properties timestamp)))
 
 (s/defn process-entity-death :- Encounter
   [entity-name :- s/Str

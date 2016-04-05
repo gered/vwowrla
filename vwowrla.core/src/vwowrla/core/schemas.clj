@@ -65,7 +65,10 @@
    (s/optional-key :faded?)           s/Bool})
 
 ; TODO
-(def SkillStatistics
+(def DamageStatistics
+  {s/Any s/Any})
+
+(def HealingStatistics
   {s/Any s/Any})
 
 ; TODO
