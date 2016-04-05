@@ -357,6 +357,8 @@
    timestamp   :- Date
    encounter   :- Encounter]
   (-> encounter
+      (touch-entity source-name timestamp)
+      (touch-entity target-name timestamp)
       (update-skill-use-count source-name target-name skill-name timestamp)))
 
 (s/defn process-entity-cast :- Encounter
@@ -365,6 +367,7 @@
    timestamp   :- Date
    encounter   :- Encounter]
   (-> encounter
+      (touch-entity entity-name timestamp)
       (update-skill-use-count entity-name nil skill-name timestamp)))
 
 (s/defn begin-encounter :- RaidAnalysis
