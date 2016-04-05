@@ -259,6 +259,15 @@
       (update-entity-damage-stats :in target-name damage-properties timestamp)
       (update-entity-damage-stats :out source-name damage-properties timestamp)))
 
+(s/defn process-source-to-target-healing :- Encounter
+  [source-name :- s/Str
+   target-name :- s/Str
+   {:keys [skill]
+    :as heal-properties} :- HealProperties
+   timestamp   :- Date
+   encounter   :- Encounter]
+  encounter)
+
 (s/defn process-entity-death :- Encounter
   [entity-name :- s/Str
    timestamp   :- Date

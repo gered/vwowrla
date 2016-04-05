@@ -122,12 +122,30 @@
 (s/defmethod handle-event :skill-heals-target :- Encounter
   [{:keys [source-name skill crit? target-name amount timestamp]} :- CombatEvent
    encounter :- Encounter]
-  encounter)
+  (analysis/process-source-to-target-healing
+    source-name
+    target-name
+    {:skill         skill
+     :actual-skill? true
+     :amount        amount
+     :crit?         crit?}
+    timestamp
+    encounter))
 
 (s/defmethod handle-event :resource-gained :- Encounter
   [{:keys [target-name amount resource-type source-name skill timestamp]} :- CombatEvent
    encounter :- Encounter]
-  encounter)
+  (condp = resource-type
+    :health (analysis/process-source-to-target-healing
+              source-name
+              target-name
+              {:skill         skill
+               ;:actual-skill? true                          ; TODO: this is not always true. e.g. if a potion is used (how to determine this?)
+               :amount        amount
+               :crit?         false}
+              timestamp
+              encounter)
+    encounter))
 
 (s/defmethod handle-event :resource-lost :- Encounter
   [{:keys [target-name amount resource-type source-name skill timestamp]} :- CombatEvent

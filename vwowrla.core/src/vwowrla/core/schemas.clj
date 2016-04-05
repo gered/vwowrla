@@ -94,3 +94,7 @@
 ; TODO
 (def DamageProperties
   {s/Any s/Any})
+
+; TODO
+(def HealProperties
+  {s/Any s/Any})
