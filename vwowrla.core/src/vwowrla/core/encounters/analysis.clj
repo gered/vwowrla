@@ -26,8 +26,10 @@
               {:name             entity-name
                :added-at         timestamp
                :last-activity-at timestamp
-               :damage           {:in  {}
-                                  :out {}}
+               :damage           {:in  {:total 0}
+                                  :out {:total 0}}
+               :healing          {:in  {:total 0}
+                                  :out {:total 0}}
                :skill-uses       {}
                :alive-dps        0
                :encounter-dps    0
@@ -380,11 +382,13 @@
   (assoc data :active-encounter
               {:name             encounter-name
                :started-at       timestamp
+               :duration         0
                :entities         {}
                :skills           {}
-               :damage           {:in {}
-                                  :out {}}
-               :healing          {}
+               :damage           {:in  {:total 0}
+                                  :out {:total 0}}
+               :healing          {:hostile  {:total 0}
+                                  :friendly {:total 0}}
                :trigger-entities (get-in defined-encounters [encounter-name :entities])}))
 
 (s/defn end-encounter :- RaidAnalysis
