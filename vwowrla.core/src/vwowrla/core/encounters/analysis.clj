@@ -239,6 +239,15 @@
          (update-in [:damage in-or-out skill] #(update-damage-statistics % damage-properties))
          (update-in [:damage k] #(update-damage-statistics % damage-properties)))))
 
+(s/defn update-skill-use-count :- Encounter
+  [encounter          :- Encounter
+   source-entity-name :- s/Str
+   target-entity-name :- (s/maybe s/Str)
+   skill              :- s/Str
+   timestamp          :- Date]
+  (-> encounter
+      (update-entity-field source-entity-name [:skill-uses skill] #(conj % {:timestamp timestamp :target target-entity-name}))))
+
 ;;;
 ;;; main combat log entry processing entry points
 ;;;
@@ -246,12 +255,14 @@
 (s/defn process-source-to-target-damage :- Encounter
   [source-name       :- s/Str
    target-name       :- s/Str
-   damage-properties :- DamageProperties
+   {:keys [skill]
+    :as damage-properties} :- DamageProperties
    timestamp         :- Date
    encounter         :- Encounter]
   (-> encounter
       (touch-entity source-name timestamp)
       (touch-entity target-name timestamp)
+      (update-skill-use-count source-name target-name skill timestamp)
       (update-damage-stats source-name target-name damage-properties timestamp)
       (update-entity-damage-stats :in target-name damage-properties timestamp)
       (update-entity-damage-stats :out source-name damage-properties timestamp)))
@@ -271,14 +282,16 @@
    skill-name  :- s/Str
    timestamp   :- Date
    encounter   :- Encounter]
-  encounter)
+  (-> encounter
+      (update-skill-use-count source-name target-name skill-name timestamp)))
 
 (s/defn process-entity-cast :- Encounter
   [entity-name :- s/Str
    skill-name  :- s/Str
    timestamp   :- Date
    encounter   :- Encounter]
-  encounter)
+  (-> encounter
+      (update-skill-use-count entity-name nil skill-name timestamp)))
 
 (s/defn begin-encounter :- RaidAnalysis
   "sets up a new active encounter in the parsed data, returning the new parsed data set ready to use for
