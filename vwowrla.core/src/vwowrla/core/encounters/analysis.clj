@@ -23,25 +23,17 @@
    timestamp   :- Date]
   (if-not (get-in encounter [:entities entity-name])
     (assoc-in encounter [:entities entity-name]
-              {:name                 entity-name
-               :added-at             timestamp
-               :last-activity-at     timestamp
-               :damage-out-total     0
-               :damage-out-totals    {}
-               :damage-in-total      0
-               :damage-in-totals     {}
-               :alive-dps            0
-               :encounter-dps        0
-               :damage-out           {}
-               :damage-out-by-entity {}
-               :damage-in            {}
-               :damage-in-by-entity  {}
-               :casts                {}
-               :other-powers         {}
-               :auras                {}
-               :deaths               []
-               :resurrections        []
-               :alive-duration       0})
+              {:name             entity-name
+               :added-at         timestamp
+               :last-activity-at timestamp
+               :damage           {:in  {}
+                                  :out {}}
+               :skill-uses       {}
+               :alive-dps        0
+               :encounter-dps    0
+               :deaths           []
+               :resurrections    []
+               :alive-duration   0})
     (assoc-in encounter [:entities entity-name :last-activity-at] timestamp)))
 
 (s/defn get-entity-last-activity :- (s/maybe Date)
@@ -305,7 +297,8 @@
                :started-at       timestamp
                :entities         {}
                :skills           {}
-               :damage           {}
+               :damage           {:in {}
+                                  :out {}}
                :healing          {}
                :trigger-entities (get-in defined-encounters [encounter-name :entities])}))
 
