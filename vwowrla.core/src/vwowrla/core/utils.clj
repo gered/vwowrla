@@ -60,7 +60,7 @@
 (defn get-text-resource-as-lines
   [f]
   (with-open [rdr (io/reader (io/resource f))]
-    (doall (line-seq rdr))))
+    (doall (remove string/blank? (line-seq rdr)))))
 
 (defn get-json-resource
   [f]

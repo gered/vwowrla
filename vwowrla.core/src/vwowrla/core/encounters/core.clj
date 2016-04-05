@@ -8,6 +8,7 @@
 (def wipe-or-timeout-period (* 60 1000))
 
 (def defined-encounters (get-edn-resource "encounters.edn"))
+(def enemy-entity-names (get-text-resource-as-lines "enemy_entity_names.txt"))
 (def non-combat-starting-auras (get-text-resource-as-lines "non_combat_starting_auras.txt"))
 (def non-combat-starting-skills (get-text-resource-as-lines "non_combat_starting_skills.txt"))
 
