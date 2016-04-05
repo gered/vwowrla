@@ -126,11 +126,11 @@
       (update-all-entities
         #(assoc %
           :encounter-dps (Math/round ^double
-                                     (/ (:damage-out-total %)
+                                     (/ (get-in % [:damage :out :total])
                                         (/ (:duration encounter)
                                            1000)))
           :alive-dps (Math/round ^double
-                                 (/ (:damage-out-total %)
+                                 (/ (get-in % [:damage :out :total])
                                     (/ (:alive-duration %)
                                        1000)))))
       (update-all-entities finalize-entity-auras (:ended-at encounter))))
@@ -157,9 +157,9 @@
       (update-in [:average-hit] #(if (> num-hits 0) (int (/ total-hit-damage num-hits)) %))
       (update-in [:average-crit] #(if (> num-crits 0) (int (/ total-crit-damage num-crits)) %))))
 
-(s/defn add-from-damage-properties :- SkillStatistics
+(s/defn update-damage-statistics :- SkillStatistics
   [totals :- (s/maybe SkillStatistics)
-   {:keys [damage damage-type hit-type crit? partial-absorb partial-resist partial-block avoidance-method]} :- DamageProperties]
+   {:keys [damage hit-type crit? partial-absorb partial-resist partial-block avoidance-method]} :- DamageProperties]
   (let [damage (or damage 0)]
     (-> (or totals {:damage             0
                     :max-hit            0
@@ -209,31 +209,29 @@
         (update-in [:num-immune] #(if (= avoidance-method :immune) (inc %) %))
         (update-damage-averages))))
 
-(s/defn entity-takes-damage :- Encounter
+(s/defn update-entity-damage-stats :- Encounter
   [encounter               :- Encounter
+   in-or-out               :- s/Keyword
    entity-name             :- s/Str
-   from-entity-name        :- s/Str
    {:keys [skill damage damage-type]
     :as damage-properties} :- DamageProperties
    timestamp               :- Date]
   (-> encounter
-      (update-entity-field entity-name [:damage-in-total] #(if damage (+ (or % 0) damage) %))
-      (update-entity-field entity-name [:damage-in-totals damage-type] #(if damage (+ (or % 0) damage) %))
-      (update-entity-field entity-name [:damage-in skill] #(add-from-damage-properties % damage-properties))
-      (update-entity-field entity-name [:damage-in-by-entity from-entity-name skill] #(add-from-damage-properties % damage-properties))))
+      (update-entity-field entity-name [:damage in-or-out :total] #(if damage (+ (or % 0) damage) %))
+      (update-entity-field entity-name [:damage in-or-out :totals-by-type damage-type] #(if damage (+ (or % 0) damage) %))
+      (update-entity-field entity-name [:damage in-or-out skill] #(update-damage-statistics % damage-properties))))
 
-(s/defn entity-deals-damage :- Encounter
+(s/defn update-damage-stats :- Encounter
   [encounter               :- Encounter
-   entity-name             :- s/Str
-   to-entity-name          :- s/Str
-   {:keys [skill damage damage-type]
+   source-entity-name      :- s/Str
+   target-entity-name      :- s/Str
+   {:keys [skill]
     :as damage-properties} :- DamageProperties
    timestamp               :- Date]
-  (-> encounter
-      (update-entity-field entity-name [:damage-out-total] #(if damage (+ (or % 0) damage) %))
-      (update-entity-field entity-name [:damage-out-totals damage-type] #(if damage (+ (or % 0) damage) %))
-      (update-entity-field entity-name [:damage-out skill] #(add-from-damage-properties % damage-properties))
-      (update-entity-field entity-name [:damage-out-by-entity to-entity-name skill] #(add-from-damage-properties % damage-properties))))
+   (let [k {:source source-entity-name
+            :target target-entity-name
+            :skill  skill}]
+     (update-in encounter [:damage k] #(update-damage-statistics % damage-properties))))
 
 ;;;
 ;;; main combat log entry processing entry points
@@ -248,9 +246,9 @@
   (-> encounter
       (touch-entity source-name timestamp)
       (touch-entity target-name timestamp)
-      (entity-takes-damage target-name source-name damage-properties timestamp)
-      (entity-deals-damage source-name target-name damage-properties timestamp))
-  )
+      (update-damage-stats source-name target-name damage-properties timestamp)
+      (update-entity-damage-stats :in target-name damage-properties timestamp)
+      (update-entity-damage-stats :out source-name damage-properties timestamp)))
 
 (s/defn process-entity-death :- Encounter
   [entity-name :- s/Str
@@ -288,6 +286,8 @@
                :started-at       timestamp
                :entities         {}
                :skills           {}
+               :damage           {}
+               :healing          {}
                :trigger-entities (get-in defined-encounters [encounter-name :entities])}))
 
 (s/defn end-encounter :- RaidAnalysis

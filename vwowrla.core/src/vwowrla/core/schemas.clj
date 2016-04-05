@@ -78,6 +78,8 @@
    :started-at                        java.util.Date
    :entities                          {s/Str Entity}
    :skills                            {s/Str s/Any}
+   :damage                            {s/Any s/Any}
+   :healing                           {s/Any s/Any}
    :trigger-entities                  {s/Str DefinedEncounterEntity}
    (s/optional-key :ended-at)         java.util.Date
    (s/optional-key :wipe-or-timeout?) s/Bool
