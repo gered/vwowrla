@@ -1,5 +1,6 @@
 (ns vwowrla.core.encounters.core
   (:require
+    [clojure.string :as string]
     [schema.core :as s])
   (:use
     vwowrla.core.schemas
@@ -11,6 +12,12 @@
 (def enemy-entity-names (get-text-resource-as-lines "enemy_entity_names.txt"))
 (def non-combat-starting-auras (get-text-resource-as-lines "non_combat_starting_auras.txt"))
 (def non-combat-starting-skills (get-text-resource-as-lines "non_combat_starting_skills.txt"))
+
+(s/defn enemy-entity? :- s/Bool
+  "returns true if the given entity name is a known enemy entity"
+  [entity-name :- (s/maybe s/Str)]
+  (if-not (string/blank? entity-name)
+    (contained-in? entity-name enemy-entity-names)))
 
 (s/defn find-defined-encounter-name :- (s/maybe s/Str)
   "returns the name of a defined encounter which includes the given entity in it's

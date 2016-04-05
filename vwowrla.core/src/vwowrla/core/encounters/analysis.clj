@@ -225,13 +225,19 @@
   [encounter               :- Encounter
    source-entity-name      :- s/Str
    target-entity-name      :- s/Str
-   {:keys [skill]
+   {:keys [skill damage damage-type]
     :as damage-properties} :- DamageProperties
    timestamp               :- Date]
-   (let [k {:source source-entity-name
-            :target target-entity-name
-            :skill  skill}]
-     (update-in encounter [:damage k] #(update-damage-statistics % damage-properties))))
+   (let [k         {:source source-entity-name
+                    :target target-entity-name
+                    :skill  skill}
+         ; if the target is an enemy, then this damage is "out" (as in, outgoing damage from the raid)
+         in-or-out (if (enemy-entity? target-entity-name) :out :in)]
+     (-> encounter
+         (update-in [:damage in-or-out :total] #(if damage (+ (or % 0) damage) %))
+         (update-in [:damage in-or-out :totals-by-type damage-type] #(if damage (+ (or % 0) damage) %))
+         (update-in [:damage in-or-out skill] #(update-damage-statistics % damage-properties))
+         (update-in [:damage k] #(update-damage-statistics % damage-properties)))))
 
 ;;;
 ;;; main combat log entry processing entry points
