@@ -298,6 +298,19 @@
         (update-in [:healing type skill] #(update-healing-statistics % heal-properties))
         (update-in [:healing k] #(update-healing-statistics % heal-properties)))))
 
+;; other casts/abilities (non-damage/healing)
+
+(s/defn check-for-resurrection :- Encounter
+  [encounter          :- Encounter
+   source-entity-name :- (s/maybe s/Str)
+   target-entity-name :- s/Str
+   skill              :- s/Str
+   timestamp          :- Date]
+  (if (resurrection-skill? skill)
+    (-> encounter
+        (update-entity-field target-entity-name [:resurrections] #(conj % {:timestamp timestamp :source source-entity-name})))
+    encounter))
+
 ;; --
 
 (s/defn update-skill-use-count :- Encounter
@@ -361,7 +374,8 @@
   (-> encounter
       (touch-entity source-name timestamp)
       (touch-entity target-name timestamp)
-      (update-skill-use-count source-name target-name skill-name timestamp)))
+      (update-skill-use-count source-name target-name skill-name timestamp)
+      (check-for-resurrection source-name target-name skill-name timestamp)))
 
 (s/defn process-entity-cast :- Encounter
   [entity-name :- s/Str
@@ -370,7 +384,8 @@
    encounter   :- Encounter]
   (-> encounter
       (touch-entity entity-name timestamp)
-      (update-skill-use-count entity-name nil skill-name timestamp)))
+      (update-skill-use-count entity-name nil skill-name timestamp)
+      (check-for-resurrection entity-name entity-name skill-name timestamp)))
 
 (s/defn begin-encounter :- RaidAnalysis
   "sets up a new active encounter in the parsed data, returning the new parsed data set ready to use for
