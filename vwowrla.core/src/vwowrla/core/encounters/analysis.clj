@@ -2,6 +2,7 @@
   (:import
     (java.util Date))
   (:require
+    [clojure.string :as string]
     [clojure.tools.logging :refer [info warn error]]
     [schema.core :as s])
   (:use
@@ -19,24 +20,27 @@
    provided, or adds a new entity under the given name to the active encounter if it does not already
    exist. returns encounter with the updated entity information."
   [encounter   :- Encounter
-   entity-name :- s/Str
+   entity-name :- (s/maybe s/Str)
    timestamp   :- Date]
-  (if-not (get-in encounter [:entities entity-name])
-    (assoc-in encounter [:entities entity-name]
-              {:name             entity-name
-               :added-at         timestamp
-               :last-activity-at timestamp
-               :damage           {:in  {:total 0}
-                                  :out {:total 0}}
-               :healing          {:in  {:total 0}
-                                  :out {:total 0}}
-               :skill-uses       {}
-               :alive-dps        0
-               :encounter-dps    0
-               :deaths           []
-               :resurrections    []
-               :alive-duration   0})
-    (assoc-in encounter [:entities entity-name :last-activity-at] timestamp)))
+  (if-not (string/blank? entity-name)
+    (if-not (get-in encounter [:entities entity-name])
+      (assoc-in encounter [:entities entity-name]
+                {:name             entity-name
+                 :added-at         timestamp
+                 :last-activity-at timestamp
+                 :damage           {:in  {:total 0}
+                                    :out {:total 0}}
+                 :healing          {:in  {:total 0}
+                                    :out {:total 0}}
+                 :skill-uses       {}
+                 :alive-dps        0
+                 :encounter-dps    0
+                 :resources        {}
+                 :deaths           []
+                 :resurrections    []
+                 :alive-duration   0})
+      (assoc-in encounter [:entities entity-name :last-activity-at] timestamp))
+    entity-name))
 
 (s/defn get-entity-last-activity :- (s/maybe Date)
   [entity-name :- s/Str
