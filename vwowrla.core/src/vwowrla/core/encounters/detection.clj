@@ -4,7 +4,7 @@
   (:require
     [clojure.tools.logging :refer [info warn error]]
     [schema.core :as s]
-    [vwowrla.core.encounters.analysis :refer [count-currently-dead get-entity-last-activity]])
+    [vwowrla.core.encounters.analysis :refer [count-deaths get-entity-last-activity]])
   (:use
     vwowrla.core.encounters.core
     vwowrla.core.schemas
@@ -114,7 +114,7 @@
           ; if there is no entity count specified then there is no specific
           ; kill requirement of this entity for the encounter to end
           (if-not (nil? count)
-            (let [count-dead (count-currently-dead encounter entity-name)]
+            (let [count-dead (count-deaths encounter entity-name)]
               (>= count-dead count))
             true))
         trigger-entites)

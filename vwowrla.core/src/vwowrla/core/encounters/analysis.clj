@@ -144,12 +144,23 @@
         (finalize-entities))))
 
 (s/defn count-currently-dead :- s/Num
+  "returns the number of dead entities by the given name. this takes into account any
+   resurrections that the entity may have received after prior deaths to attempt to
+   determine the current proper entity state (alive or dead)"
   [encounter   :- Encounter
    entity-name :- s/Str]
   (if-let [entity (get-in encounter [:entities entity-name])]
     (let [num-deaths     (count (:deaths entity))
           num-resurrects (count (:resurrections entity))]
       (- num-deaths num-resurrects))
+    0))
+
+(s/defn count-deaths :- s/Num
+  "returns the number of times the given entity died during the encounter."
+  [encounter :- Encounter
+   entity-name :- s/Str]
+  (if-let [entity (get-in encounter [:entities entity-name])]
+    (count (:deaths entity))
     0))
 
 ;; damage
