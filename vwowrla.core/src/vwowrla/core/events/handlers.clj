@@ -135,33 +135,49 @@
 (s/defmethod handle-event :resource-gained :- Encounter
   [{:keys [target-name amount resource-type source-name skill timestamp]} :- CombatEvent
    encounter :- Encounter]
-  (condp = resource-type
-    :health (analysis/process-source-to-target-healing
-              source-name
-              target-name
-              {:skill         skill
-               ;:actual-skill? true                          ; TODO: this is not always true. e.g. if a potion is used (how to determine this?)
-               :amount        amount
-               :crit?         false}
-              timestamp
-              encounter)
-    encounter))
+  (if (= resource-type :health)
+    (analysis/process-source-to-target-healing
+      source-name
+      target-name
+      {:skill         skill
+       ;:actual-skill? true                          ; TODO: this is not always true. e.g. if a potion is used (how to determine this?)
+       :amount        amount
+       :crit?         false}
+      timestamp
+      encounter)
+    (analysis/process-resource-change
+      source-name
+      target-name
+      {:skill         skill
+       :amount        amount
+       :resource-type resource-type
+       :gained?       true}
+      timestamp
+      encounter)))
 
 (s/defmethod handle-event :resource-lost :- Encounter
   [{:keys [target-name amount resource-type source-name skill timestamp]} :- CombatEvent
    encounter :- Encounter]
-  (condp = resource-type
-    :health (analysis/process-source-to-target-damage
-              source-name
-              target-name
-              {:skill         skill
-               :actual-skill? true
-               :damage        amount
-               :damage-type   :physical
-               :crit?         false}
-              timestamp
-              encounter)
-    encounter))
+  (if (= resource-type :health)
+    (analysis/process-source-to-target-damage
+      source-name
+      target-name
+      {:skill         skill
+       :actual-skill? true
+       :damage        amount
+       :damage-type   :physical
+       :crit?         false}
+      timestamp
+      encounter)
+    (analysis/process-resource-change
+      source-name
+      target-name
+      {:skill         skill
+       :amount        amount
+       :resource-type resource-type
+       :gained?       false}
+      timestamp
+      encounter)))
 
 (s/defmethod handle-event :special-gained :- Encounter
   [{:keys [target-name special source timestamp]} :- CombatEvent

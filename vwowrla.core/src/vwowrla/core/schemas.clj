@@ -101,3 +101,6 @@
 ; TODO
 (def HealProperties
   {s/Any s/Any})
+
+(def ResourceChangeProperties
+  {s/Any s/Any})

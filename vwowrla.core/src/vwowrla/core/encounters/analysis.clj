@@ -316,6 +316,21 @@
         (update-in [:healing type skill] #(update-healing-statistics % heal-properties))
         (update-in [:healing k] #(update-healing-statistics % heal-properties)))))
 
+;; resource gains/losses (not health... so no damage/healing in these)
+
+(s/defn update-resource-change-stats :- Encounter
+  [encounter                        :- Encounter
+   source-entity-name               :- s/Str
+   target-entity-name               :- s/Str
+   {:keys [skill amount resource-type gained?]
+    :as resource-change-properties} :- ResourceChangeProperties
+   timestamp                        :- Date]
+  (let [gained-or-lost (if gained? :gained :lost)]
+    (-> encounter
+        (update-entity-field target-entity-name [:resources resource-type gained-or-lost :total] #(if amount (+ (or % 0) amount) %))
+        (update-entity-field target-entity-name [:resources resource-type gained-or-lost skill] #(if amount (+ (or % 0) amount) %))
+        (update-entity-field target-entity-name [:resource-changes resource-type gained-or-lost skill] #(conj % {:timestamp timestamp :source source-entity-name :amount amount})))))
+
 ;; other casts/abilities (non-damage/healing)
 
 (s/defn check-for-resurrection :- Encounter
@@ -404,6 +419,18 @@
       (touch-entity entity-name timestamp)
       (update-skill-use-count entity-name nil skill-name timestamp)
       (check-for-resurrection entity-name entity-name skill-name timestamp)))
+
+(s/defn process-resource-change :- Encounter
+  [source-name :- s/Str
+   target-name :- s/Str
+   {:keys [skill]
+    :as resource-change-properties} :- ResourceChangeProperties
+   timestamp :- Date
+   encounter :- Encounter]
+  (-> encounter
+      (touch-entity source-name timestamp)
+      (touch-entity target-name timestamp)
+      (update-resource-change-stats source-name target-name resource-change-properties timestamp)))
 
 (s/defn begin-encounter :- RaidAnalysis
   "sets up a new active encounter in the parsed data, returning the new parsed data set ready to use for
