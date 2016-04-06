@@ -10,6 +10,7 @@
 
 (def defined-encounters (get-edn-resource "encounters.edn"))
 (def enemy-entity-names (get-text-resource-as-lines "enemy_entity_names.txt"))
+(def resurrection-skill-names (get-text-resource-as-lines "resurrection_skill_names.txt"))
 (def non-combat-starting-auras (get-text-resource-as-lines "non_combat_starting_auras.txt"))
 (def non-combat-starting-skills (get-text-resource-as-lines "non_combat_starting_skills.txt"))
 
@@ -18,6 +19,11 @@
   [entity-name :- (s/maybe s/Str)]
   (if-not (string/blank? entity-name)
     (contained-in? entity-name enemy-entity-names)))
+
+(s/defn resurrection-skill? :- s/Bool
+  "returns true if the given skill name is a known resurrection skill"
+  [skill-name :- s/Str]
+  (contained-in? skill-name resurrection-skill-names))
 
 (s/defn find-defined-encounter-name :- (s/maybe s/Str)
   "returns the name of a defined encounter which includes the given entity in it's
