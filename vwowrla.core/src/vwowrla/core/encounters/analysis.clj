@@ -74,8 +74,11 @@
               :from at)
 
             ; first state change we find is a death
-            (and (nil? current-status)
-                 (= :dead status))
+            ; OR, this is a death after one or more previous state changes and they were alive up til now
+            (or (and (nil? current-status)
+                     (= :dead status))
+                (and (= :alive current-status)
+                     (= :dead status)))
             (assoc result
               :current-status :dead
               :from at
