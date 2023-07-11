@@ -3,6 +3,11 @@
 A program and web app UI front-end for doing analysis on combat logs taken with
 a Vanilla World of Warcraft 1.12.1 en-US client (Windows or Mac).
 
+**2023-July-11: This project was never finished. It could parse most raid logs I remember throwing at it back when I worked on it, 
+but things weren't quite perfect. And it was never actually tested on raid logs from beyond BWL-ish, so probably mostly anything
+in there and beyond it will have issues. I'm just making this repository public because it has been sitting as a private repository
+here for a long time, collecting dust. Maybe someone will find this useful. But probably not!**
+
 ## Why?
 
 Beginning with TBC patch 2.4, Blizzard [changed the combat log format](http://wowwiki.wikia.com/wiki/Combat_Log)
